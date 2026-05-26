@@ -11,6 +11,7 @@
 | kafka     | 9092              | event bus               |
 | kafka-ui  | 8080              | просмотр топиков        |
 | rabbitmq  | 5672 / 15672      | task queue / UI         |
+| jaeger    | 16686 / 4318      | tracing UI / OTLP HTTP  |
 
 ## Запуск
 
@@ -39,6 +40,8 @@ docker compose down
 - Kafka: `localhost:9092`
 - RabbitMQ: `amqp://orderflow:orderflow@localhost:5672/`
 - RabbitMQ UI: http://localhost:15672
+- Jaeger UI: http://localhost:16686
+- OTLP HTTP: http://localhost:4318/v1/traces
 
 При первом запуске Postgres создает отдельные БД для сервисов, начиная с `orderflow_auth` для `auth-service`.
 
