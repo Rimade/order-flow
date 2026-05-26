@@ -73,6 +73,35 @@
 - изменения держим маленькими и логически цельными;
 - новый сервис добавляем только с понятной зоной ответственности.
 
+## Быстрый старт (gateway + auth)
+
+```bash
+# 1. Инфраструктура
+cd infra/compose
+cp .env.example .env
+docker compose up -d
+
+# 2. Auth (отдельный терминал)
+cd ../../services/auth-service
+cp .env.example .env
+npm run prisma:migrate:dev
+npm run start:dev
+
+# 3. Gateway (отдельный терминал)
+cd ../api-gateway
+cp .env.example .env
+# JWT_ACCESS_SECRET должен совпадать с auth-service
+npm run start:dev
+```
+
+Регистрация через gateway:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"user@example.com\",\"password\":\"password123\"}"
+```
+
 ## Локальный запуск инфраструктуры
 
 ```bash
@@ -90,12 +119,16 @@ docker compose up -d
 
 Подробнее: `infra/compose/README.md`.
 
-## Сервисы в разработке
+## Сервисы
 
-- `auth-service` — NestJS, JWT, PostgreSQL (`orderflow_auth`), порт `3001`
+| Сервис         | Порт | Роль                                      |
+| -------------- | ---- | ----------------------------------------- |
+| `api-gateway`  | 3000 | вход для клиентов, JWT, rate limit, proxy |
+| `auth-service` | 3001 | регистрация, логин, refresh, профиль      |
+
+Клиенты ходят **только в gateway** (`http://localhost:3000`). Внутренние сервисы не публикуются наружу на этапе локальной разработки.
 
 ## Ближайшие шаги
 
-- завести `api-gateway` с проксированием и JWT guard;
-- завести первый Go-сервис (`inventory-service`);
+- завести `order-service` и первый Go-сервис `inventory-service`;
 - подключить Kafka event flow между сервисами.

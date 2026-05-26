@@ -276,8 +276,8 @@
 
 ## Ближайший следующий шаг
 
-Skeleton репозитория, compose-стек и `auth-service` уже заведены. Следующий шаг:
+Skeleton, compose-стек, `auth-service` и `api-gateway` уже заведены. Следующий шаг:
 
-- инициализировать `api-gateway` с JWT guard и маршрутизацией;
+- инициализировать `order-service`;
 - инициализировать первый Go-сервис (`inventory-service`);
 - подключить Kafka event flow для заказов и остатков.
