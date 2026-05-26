@@ -42,8 +42,18 @@ API / Consumer handler
 - статус `FAILED` для ручного разбора;
 - relay в той же транзакции, что и lock (order-service) или commit после publish batch (Go).
 
+## Dead Letter Queue (DLQ)
+
+После исчерпания retry (`OUTBOX_MAX_RETRIES`) запись получает статус `FAILED`, relay публикует envelope `outbox.dead_letter` в Kafka-топик `dlq.outbox` (env `OUTBOX_DLQ_TOPIC`).
+
+Сообщение остаётся в БД для аудита; DLQ — для алертинга и ручного/replay tooling.
+
+## Saga compensation
+
+При `payment.failed` `inventory-service` (consumer group `inventory-service-compensation`) освобождает ACTIVE-резервы и возвращает остатки на склад. `order-service` переводит заказ в `FAILED`.
+
 ## Следующий уровень (опционально)
 
 - Debezium CDC из outbox table вместо polling relay;
-- dead-letter queue для `FAILED` сообщений;
+- replay API для сообщений из `dlq.outbox`;
 - метрики: lag outbox, publish latency, retry rate.
