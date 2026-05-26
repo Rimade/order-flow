@@ -4,10 +4,22 @@
 
 Цель репозитория - не просто собрать CRUD, а пошагово построить систему обработки заказов с актуальными инфраструктурными и platform-практиками: `Kafka`, `Redis`, `PostgreSQL`, `Docker Compose`, `OpenTelemetry`, `Prometheus`, `Grafana`, `Jaeger`.
 
+## Структура репозитория
+
+```text
+/
+  docs/           # архитектура и git workflow
+  infra/          # docker compose, kafka, monitoring
+  services/       # микросервисы (NestJS + Go)
+  packages/       # общие контракты и shared libs
+```
+
 ## Что внутри
 
 - `docs/project-blueprint.md` - главный архитектурный документ проекта;
 - `docs/git-workflow.md` - правила коммитов и ведения истории;
+- `infra/compose/` - локальный стек PostgreSQL, Redis, Kafka, Kafka UI;
+- `services/` - каталоги сервисов со skeleton README;
 - `.cursor/rules/` - постоянный контекст и conventions для работы через Cursor.
 
 ## Домен
@@ -61,9 +73,25 @@
 - изменения держим маленькими и логически цельными;
 - новый сервис добавляем только с понятной зоной ответственности.
 
+## Локальный запуск инфраструктуры
+
+```bash
+cd infra/compose
+cp .env.example .env
+docker compose up -d
+```
+
+После старта:
+
+- Kafka UI: http://localhost:8080
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
+- Kafka: `localhost:9092`
+
+Подробнее: `infra/compose/README.md`.
+
 ## Ближайшие шаги
 
-- создать skeleton-структуру репозитория;
-- поднять локальную инфраструктуру через `Docker Compose`;
-- завести первые сервисы `api-gateway`, `auth-service`, `order-service`, `inventory-service`, `payment-service`;
+- завести первый NestJS-сервис (`api-gateway` или `auth-service`);
+- завести первый Go-сервис (`inventory-service` или `payment-service`);
 - подключить Kafka event flow между сервисами.
