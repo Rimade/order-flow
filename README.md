@@ -98,6 +98,28 @@ cd ../order-service
 cp .env.example .env
 npm run prisma:migrate:dev
 npm run start:dev
+
+# 5. Inventory (Go, отдельный терминал)
+cd ../inventory-service
+cp .env.example .env
+go run ./cmd/server
+
+# 6. Payment (Go, отдельный терминал)
+cd ../payment-service
+cp .env.example .env
+go run ./cmd/server
+```
+
+## Event flow (core)
+
+```text
+Client -> api-gateway -> order-service
+              | publish order.created
+              v
+       inventory-service -> inventory.reserved | inventory.rejected
+              | publish (on success)
+              v
+        payment-service -> payment.succeeded | payment.failed
 ```
 
 Регистрация через gateway:
@@ -132,10 +154,13 @@ docker compose up -d
 | `api-gateway`  | 3000 | вход для клиентов, JWT, rate limit, proxy |
 | `auth-service` | 3001 | регистрация, логин, refresh, профиль      |
 | `order-service`| 3002 | заказы, Kafka `order.created`             |
+| `inventory-service` | 3003 | остатки, consumer/producer Kafka   |
+| `payment-service`   | 3004 | оплата, consumer/producer Kafka    |
 
 Клиенты ходят **только в gateway** (`http://localhost:3000`). Внутренние сервисы не публикуются наружу на этапе локальной разработки.
 
 ## Ближайшие шаги
 
-- завести `inventory-service` (Go) — consumer топика `order.created`;
-- добавить outbox pattern в `order-service` для надежной публикации событий.
+- подключить `order-service` как consumer `payment.succeeded` / `payment.failed` для финализации заказа;
+- добавить outbox pattern для надежной публикации событий;
+- `notification-service` для уведомлений пользователю.

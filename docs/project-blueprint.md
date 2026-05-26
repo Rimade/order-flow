@@ -276,8 +276,8 @@
 
 ## Ближайший следующий шаг
 
-Skeleton, compose-стек, `auth-service`, `api-gateway` и `order-service` уже заведены. Следующий шаг:
+Core event flow (`order` -> `inventory` -> `payment`) уже реализован. Следующий шаг:
 
-- инициализировать `inventory-service` (Go) как consumer `order.created`;
-- добавить outbox pattern в `order-service`;
-- реализовать резерв остатков и события `inventory.reserved` / `inventory.rejected`.
+- обновлять статус заказа в `order-service` по `payment.succeeded` / `payment.failed`;
+- добавить outbox pattern для надежной публикации событий;
+- реализовать `notification-service`.

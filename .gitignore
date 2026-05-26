@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 bin/
+**/bin/*.exe
+**/bin/inventory-service*
+**/bin/payment-service*
 tmp/
 .tmp/
 coverage/
