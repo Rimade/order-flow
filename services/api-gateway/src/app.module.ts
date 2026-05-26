@@ -11,6 +11,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { ProxyModule } from './proxy/proxy.module';
 import { REDIS_CLIENT } from './redis/redis.constants';
 import { RedisModule } from './redis/redis.module';
@@ -46,6 +47,7 @@ import { GatewayThrottlerGuard } from './throttler/gateway-throttler.guard';
     HttpModule,
     AuthModule,
     HealthModule,
+    MetricsModule,
     ProxyModule,
   ],
   providers: [
