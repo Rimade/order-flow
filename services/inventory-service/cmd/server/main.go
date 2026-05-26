@@ -69,8 +69,13 @@ func main() {
 	defer kafkaProducer.Close()
 
 	reservationService := service.NewReservationService(repo, cfg, logger)
+	compensationService := service.NewCompensationService(repo, logger)
+
 	orderConsumer := consumer.NewOrderCreatedConsumer(cfg, reservationService, logger)
 	defer orderConsumer.Close()
+
+	paymentFailedConsumer := consumer.NewPaymentFailedConsumer(cfg, compensationService, logger)
+	defer paymentFailedConsumer.Close()
 
 	outboxRelay := outbox.NewRelay(pool, kafkaProducer, cfg, logger)
 
@@ -83,6 +88,13 @@ func main() {
 	go func() {
 		if err = orderConsumer.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 			logger.Error("kafka consumer stopped", "error", err)
+			stop()
+		}
+	}()
+
+	go func() {
+		if err = paymentFailedConsumer.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			logger.Error("payment.failed consumer stopped", "error", err)
 			stop()
 		}
 	}()

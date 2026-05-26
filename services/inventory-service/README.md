@@ -31,6 +31,7 @@ Env: `OUTBOX_POLL_INTERVAL_MS`, `OUTBOX_BATCH_SIZE`, `OUTBOX_MAX_RETRIES`.
 | consume     | `order.created`       |
 | produce     | `inventory.reserved`  |
 | produce     | `inventory.rejected`  |
+| consume     | `payment.failed` (compensation — release stock) |
 
 ## Seed-данные
 

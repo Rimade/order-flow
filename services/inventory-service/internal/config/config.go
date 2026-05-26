@@ -15,10 +15,13 @@ type Config struct {
 	KafkaConsumerGroup           string
 	KafkaOrderTopic              string
 	KafkaInventoryReservedTopic  string
-	KafkaInventoryRejectedTopic  string
-	OutboxPollIntervalMs         int
-	OutboxBatchSize              int
-	OutboxMaxRetries             int
+	KafkaInventoryRejectedTopic      string
+	KafkaPaymentFailedTopic          string
+	KafkaPaymentFailedConsumerGroup  string
+	OutboxPollIntervalMs             int
+	OutboxBatchSize                  int
+	OutboxMaxRetries                 int
+	OutboxDLQTopic                   string
 }
 
 func Load() (Config, error) {
@@ -43,10 +46,16 @@ func Load() (Config, error) {
 		KafkaConsumerGroup:          consumerGroup,
 		KafkaOrderTopic:             orderTopic,
 		KafkaInventoryReservedTopic: reservedTopic,
-		KafkaInventoryRejectedTopic: rejectedTopic,
-		OutboxPollIntervalMs:        getenvInt("OUTBOX_POLL_INTERVAL_MS", 1000),
-		OutboxBatchSize:             getenvInt("OUTBOX_BATCH_SIZE", 20),
-		OutboxMaxRetries:            getenvInt("OUTBOX_MAX_RETRIES", 5),
+		KafkaInventoryRejectedTopic:     rejectedTopic,
+		KafkaPaymentFailedTopic:         getenv("KAFKA_PAYMENT_FAILED_TOPIC", "payment.failed"),
+		KafkaPaymentFailedConsumerGroup: getenv(
+			"KAFKA_PAYMENT_FAILED_CONSUMER_GROUP",
+			"inventory-service-compensation",
+		),
+		OutboxPollIntervalMs: getenvInt("OUTBOX_POLL_INTERVAL_MS", 1000),
+		OutboxBatchSize:      getenvInt("OUTBOX_BATCH_SIZE", 20),
+		OutboxMaxRetries:     getenvInt("OUTBOX_MAX_RETRIES", 5),
+		OutboxDLQTopic:       getenv("OUTBOX_DLQ_TOPIC", "dlq.outbox"),
 	}, nil
 }
 

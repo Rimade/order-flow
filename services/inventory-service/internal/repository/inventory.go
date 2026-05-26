@@ -237,3 +237,89 @@ func (r *InventoryRepository) RecordRejectionWithOutbox(
 
 	return tx.Commit(ctx)
 }
+
+func (r *InventoryRepository) ReleaseOrderReservations(
+	ctx context.Context,
+	sourceEventID string,
+	orderID string,
+) (int, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback(ctx)
+
+	rows, err := tx.Query(
+		ctx,
+		`SELECT id, product_id, quantity
+		 FROM reservations
+		 WHERE order_id = $1 AND status = 'ACTIVE'
+		 FOR UPDATE`,
+		orderID,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	type reservationRow struct {
+		id        string
+		productID string
+		quantity  int
+	}
+
+	active := make([]reservationRow, 0)
+	for rows.Next() {
+		var row reservationRow
+		if scanErr := rows.Scan(&row.id, &row.productID, &row.quantity); scanErr != nil {
+			rows.Close()
+			return 0, scanErr
+		}
+		active = append(active, row)
+	}
+	rows.Close()
+
+	if err = rows.Err(); err != nil {
+		return 0, err
+	}
+
+	for _, row := range active {
+		_, err = tx.Exec(
+			ctx,
+			`UPDATE products
+			 SET available_qty = available_qty + $2,
+			     reserved_qty = reserved_qty - $2,
+			     updated_at = NOW()
+			 WHERE product_id = $1`,
+			row.productID,
+			row.quantity,
+		)
+		if err != nil {
+			return 0, err
+		}
+
+		_, err = tx.Exec(
+			ctx,
+			`UPDATE reservations SET status = 'RELEASED' WHERE id = $1`,
+			row.id,
+		)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO processed_events (event_id, event_type) VALUES ($1, $2)`,
+		sourceEventID,
+		"payment.failed",
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return 0, err
+	}
+
+	return len(active), nil
+}

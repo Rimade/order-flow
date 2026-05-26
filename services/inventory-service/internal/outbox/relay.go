@@ -10,13 +10,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"orderflow/inventory-service/internal/config"
 	"orderflow/inventory-service/internal/producer"
+	sharedoutbox "orderflow/shared-observability/outbox"
 )
 
 type Relay struct {
-	pool     *pgxpool.Pool
-	producer *producer.KafkaProducer
-	cfg      config.Config
-	logger   *slog.Logger
+	pool        *pgxpool.Pool
+	producer    *producer.KafkaProducer
+	dlq         *sharedoutbox.DlqPublisher
+	cfg         config.Config
+	logger      *slog.Logger
+	serviceName string
 }
 
 func NewRelay(
@@ -25,7 +28,20 @@ func NewRelay(
 	cfg config.Config,
 	logger *slog.Logger,
 ) *Relay {
-	return &Relay{pool: pool, producer: producer, cfg: cfg, logger: logger}
+	serviceName := "inventory-service"
+	return &Relay{
+		pool:        pool,
+		producer:    producer,
+		dlq: sharedoutbox.NewDlqPublisher(
+			producer,
+			serviceName,
+			cfg.OutboxDLQTopic,
+			logger,
+		),
+		cfg:         cfg,
+		logger:      logger,
+		serviceName: serviceName,
+	}
 }
 
 func (r *Relay) Run(ctx context.Context) {
@@ -51,6 +67,12 @@ type pendingMessage struct {
 	EventType  string
 	Payload    []byte
 	RetryCount int
+}
+
+type deadLetter struct {
+	message   pendingMessage
+	lastError string
+	retry     int
 }
 
 func (r *Relay) dispatchBatch(ctx context.Context) error {
@@ -97,10 +119,18 @@ func (r *Relay) dispatchBatch(ctx context.Context) error {
 		return err
 	}
 
+	deadLetters := make([]deadLetter, 0)
+
 	for _, message := range messages {
 		var payload any
 		if err = json.Unmarshal(message.Payload, &payload); err != nil {
-			r.markFailedTx(ctx, tx, message, err)
+			if r.markFailedTx(ctx, tx, message, err) {
+				deadLetters = append(deadLetters, deadLetter{
+					message:   message,
+					lastError: err.Error(),
+					retry:     message.RetryCount + 1,
+				})
+			}
 			continue
 		}
 
@@ -112,7 +142,13 @@ func (r *Relay) dispatchBatch(ctx context.Context) error {
 			message.ID,
 			payload,
 		); err != nil {
-			r.markFailedTx(ctx, tx, message, err)
+			if r.markFailedTx(ctx, tx, message, err) {
+				deadLetters = append(deadLetters, deadLetter{
+					message:   message,
+					lastError: err.Error(),
+					retry:     message.RetryCount + 1,
+				})
+			}
 			continue
 		}
 
@@ -127,14 +163,37 @@ func (r *Relay) dispatchBatch(ctx context.Context) error {
 		r.logger.Info("outbox published", "eventType", message.EventType, "id", message.ID)
 	}
 
-	return tx.Commit(ctx)
+	if err = tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	for _, letter := range deadLetters {
+		r.dlq.Publish(ctx, sharedoutbox.DeadLetterInput{
+			OutboxID:          letter.message.ID,
+			MessageKey:        letter.message.MessageKey,
+			OriginalEventType: letter.message.EventType,
+			Payload:           letter.message.Payload,
+			LastError:         letter.lastError,
+			RetryCount:        letter.retry,
+			OriginalTopic:     letter.message.Topic,
+		})
+	}
+
+	return nil
 }
 
-func (r *Relay) markFailedTx(ctx context.Context, tx pgx.Tx, message pendingMessage, cause error) {
+func (r *Relay) markFailedTx(
+	ctx context.Context,
+	tx pgx.Tx,
+	message pendingMessage,
+	cause error,
+) bool {
 	nextRetry := message.RetryCount + 1
 	status := "PENDING"
+	becameFailed := false
 	if nextRetry >= r.cfg.OutboxMaxRetries {
 		status = "FAILED"
+		becameFailed = true
 	}
 
 	_, err := tx.Exec(ctx, `
@@ -144,5 +203,8 @@ func (r *Relay) markFailedTx(ctx context.Context, tx pgx.Tx, message pendingMess
 	`, message.ID, nextRetry, cause.Error(), status)
 	if err != nil {
 		r.logger.Error("failed to update outbox retry", "id", message.ID, "error", err)
+		return false
 	}
+
+	return becameFailed
 }
