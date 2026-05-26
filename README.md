@@ -175,8 +175,8 @@ docker compose up -d
 
 ## Ближайшие шаги
 
-- DLQ для failed outbox / consumer messages;
-- компенсации saga.
+- replay tooling для `dlq.outbox`;
+- бизнес-метрики saga.
 
 Observability:
 - Трассировка: `docs/observability.md`, Jaeger http://localhost:16686

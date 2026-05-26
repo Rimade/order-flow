@@ -22,6 +22,7 @@ type Config struct {
 	OutboxPollIntervalMs        int
 	OutboxBatchSize             int
 	OutboxMaxRetries            int
+	OutboxDLQTopic              string
 }
 
 func Load() (Config, error) {
@@ -55,6 +56,7 @@ func Load() (Config, error) {
 		OutboxPollIntervalMs:        getenvInt("OUTBOX_POLL_INTERVAL_MS", 1000),
 		OutboxBatchSize:             getenvInt("OUTBOX_BATCH_SIZE", 20),
 		OutboxMaxRetries:            getenvInt("OUTBOX_MAX_RETRIES", 5),
+		OutboxDLQTopic:              getenv("OUTBOX_DLQ_TOPIC", "dlq.outbox"),
 	}, nil
 }
 

@@ -285,7 +285,7 @@
 
 ## Ближайший следующий шаг
 
-Полный core saga, outbox, Redis rate limit, tracing (Jaeger) и **Prometheus + Grafana** реализованы. Следующий шаг:
+Полный core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и **компенсация inventory при payment.failed** реализованы. Следующий шаг:
 
-- DLQ и компенсации saga;
+- replay tooling для `dlq.outbox`;
 - бизнес-метрики saga (orders created, payments failed).

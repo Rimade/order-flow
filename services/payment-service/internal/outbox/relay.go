@@ -11,12 +11,14 @@ import (
 	"orderflow/payment-service/internal/config"
 	"orderflow/payment-service/internal/producer"
 	"orderflow/payment-service/internal/rabbitmq"
+	sharedoutbox "orderflow/shared-observability/outbox"
 )
 
 type Relay struct {
 	pool            *pgxpool.Pool
 	kafkaProducer   *producer.KafkaProducer
 	rabbitPublisher *rabbitmq.Publisher
+	dlq             *sharedoutbox.DlqPublisher
 	cfg             config.Config
 	logger          *slog.Logger
 }
@@ -32,8 +34,14 @@ func NewRelay(
 		pool:            pool,
 		kafkaProducer:   kafkaProducer,
 		rabbitPublisher: rabbitPublisher,
-		cfg:             cfg,
-		logger:          logger,
+		dlq: sharedoutbox.NewDlqPublisher(
+			kafkaProducer,
+			"payment-service",
+			cfg.OutboxDLQTopic,
+			logger,
+		),
+		cfg:    cfg,
+		logger: logger,
 	}
 }
 
@@ -63,6 +71,12 @@ type pendingMessage struct {
 	EventType   string
 	Payload     []byte
 	RetryCount  int
+}
+
+type deadLetter struct {
+	message   pendingMessage
+	lastError string
+	retry     int
 }
 
 func (r *Relay) dispatchBatch(ctx context.Context) error {
@@ -112,9 +126,17 @@ func (r *Relay) dispatchBatch(ctx context.Context) error {
 		return err
 	}
 
+	deadLetters := make([]deadLetter, 0)
+
 	for _, message := range messages {
 		if err = r.publishMessage(ctx, message); err != nil {
-			r.markFailedTx(ctx, tx, message, err)
+			if r.markFailedTx(ctx, tx, message, err) {
+				deadLetters = append(deadLetters, deadLetter{
+					message:   message,
+					lastError: err.Error(),
+					retry:     message.RetryCount + 1,
+				})
+			}
 			continue
 		}
 
@@ -134,7 +156,31 @@ func (r *Relay) dispatchBatch(ctx context.Context) error {
 		)
 	}
 
-	return tx.Commit(ctx)
+	if err = tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	for _, letter := range deadLetters {
+		input := sharedoutbox.DeadLetterInput{
+			OutboxID:          letter.message.ID,
+			MessageKey:        letter.message.MessageKey,
+			OriginalEventType: letter.message.EventType,
+			Payload:           letter.message.Payload,
+			LastError:         letter.lastError,
+			RetryCount:        letter.retry,
+			Destination:       letter.message.Destination,
+		}
+		if letter.message.Topic != nil {
+			input.OriginalTopic = *letter.message.Topic
+		}
+		if letter.message.RoutingKey != nil {
+			input.RoutingKey = *letter.message.RoutingKey
+		}
+
+		r.dlq.Publish(ctx, input)
+	}
+
+	return nil
 }
 
 func (r *Relay) publishMessage(ctx context.Context, message pendingMessage) error {
@@ -173,11 +219,18 @@ func (r *Relay) publishMessage(ctx context.Context, message pendingMessage) erro
 	}
 }
 
-func (r *Relay) markFailedTx(ctx context.Context, tx pgx.Tx, message pendingMessage, cause error) {
+func (r *Relay) markFailedTx(
+	ctx context.Context,
+	tx pgx.Tx,
+	message pendingMessage,
+	cause error,
+) bool {
 	nextRetry := message.RetryCount + 1
 	status := "PENDING"
+	becameFailed := false
 	if nextRetry >= r.cfg.OutboxMaxRetries {
 		status = "FAILED"
+		becameFailed = true
 	}
 
 	_, err := tx.Exec(ctx, `
@@ -187,12 +240,15 @@ func (r *Relay) markFailedTx(ctx context.Context, tx pgx.Tx, message pendingMess
 	`, message.ID, nextRetry, cause.Error(), status)
 	if err != nil {
 		r.logger.Error("failed to update outbox retry", "id", message.ID, "error", err)
+		return false
 	}
+
+	return becameFailed
 }
 
 var (
-	errMissingTopic      = errString("outbox kafka message missing topic")
-	errMissingRoutingKey = errString("outbox rabbitmq message missing routing key")
+	errMissingTopic       = errString("outbox kafka message missing topic")
+	errMissingRoutingKey  = errString("outbox rabbitmq message missing routing key")
 	errUnknownDestination = errString("unknown outbox destination")
 )
 

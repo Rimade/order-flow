@@ -8,9 +8,10 @@
 | `inventory.reserved`  | `inventory-service` | `payment-service`       |
 | `inventory.rejected`  | `inventory-service` | — (planned: order)      |
 | `payment.succeeded`   | `payment-service`   | `order-service`         |
-| `payment.failed`      | `payment-service`   | `order-service`         |
-| `inventory.reserved`  | `inventory-service` | `order-service`         |
+| `payment.failed`      | `payment-service`   | `order-service`, `inventory-service` (compensation) |
+| `inventory.reserved`  | `inventory-service` | `order-service`, `payment-service` |
 | `inventory.rejected`  | `inventory-service` | `order-service`         |
+| `dlq.outbox`          | producer relays     | ops / replay (manual)   |
 
 ## Локальная разработка
 
