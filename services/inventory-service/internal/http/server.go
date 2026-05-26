@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"orderflow/inventory-service/internal/repository"
 )
 
@@ -22,20 +23,21 @@ func NewServer(
 	repo *repository.InventoryRepository,
 	logger *slog.Logger,
 ) *Server {
-	mux := http.NewServeMux()
-	server := &Server{
+	s := &Server{
 		repo:   repo,
 		logger: logger,
-		server: &http.Server{
-			Addr:              ":" + strconv.Itoa(port),
-			Handler:           mux,
-			ReadHeaderTimeout: 5 * time.Second,
-		},
 	}
 
-	mux.HandleFunc("GET /health", server.handleHealth)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /health", s.handleHealth)
 
-	return server
+	s.server = &http.Server{
+		Addr: ":" + strconv.Itoa(port),
+		Handler: otelhttp.NewHandler(mux, "inventory-service"),
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	return s
 }
 
 func (s *Server) Start() error {

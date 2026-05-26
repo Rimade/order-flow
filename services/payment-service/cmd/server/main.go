@@ -19,6 +19,7 @@ import (
 	"orderflow/payment-service/internal/rabbitmq"
 	"orderflow/payment-service/internal/repository"
 	"orderflow/payment-service/internal/service"
+	"orderflow/shared-observability/telemetry"
 )
 
 func main() {
@@ -40,6 +41,17 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	serviceName := os.Getenv("OTEL_SERVICE_NAME")
+	if serviceName == "" {
+		serviceName = "payment-service"
+	}
+
+	shutdownTelemetry, err := telemetry.Init(ctx, serviceName)
+	if err != nil {
+		logger.Error("telemetry init failed", "error", err)
+		os.Exit(1)
+	}
 
 	pool, err := bootstrap.ConnectDatabase(ctx, cfg.DatabaseURL)
 	if err != nil {
@@ -96,4 +108,8 @@ func main() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_ = httpServer.Shutdown(shutdownCtx)
+
+	if err = shutdownTelemetry(shutdownCtx); err != nil {
+		logger.Error("telemetry shutdown failed", "error", err)
+	}
 }

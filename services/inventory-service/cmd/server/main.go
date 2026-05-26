@@ -18,6 +18,7 @@ import (
 	"orderflow/inventory-service/internal/producer"
 	"orderflow/inventory-service/internal/repository"
 	"orderflow/inventory-service/internal/service"
+	"orderflow/shared-observability/telemetry"
 )
 
 func main() {
@@ -39,6 +40,17 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	serviceName := os.Getenv("OTEL_SERVICE_NAME")
+	if serviceName == "" {
+		serviceName = "inventory-service"
+	}
+
+	shutdownTelemetry, err := telemetry.Init(ctx, serviceName)
+	if err != nil {
+		logger.Error("telemetry init failed", "error", err)
+		os.Exit(1)
+	}
 
 	pool, err := bootstrap.ConnectDatabase(ctx, cfg.DatabaseURL)
 	if err != nil {
@@ -91,5 +103,9 @@ func main() {
 
 	if err = httpServer.Shutdown(shutdownCtx); err != nil {
 		logger.Error("http shutdown failed", "error", err)
+	}
+
+	if err = shutdownTelemetry(shutdownCtx); err != nil {
+		logger.Error("telemetry shutdown failed", "error", err)
 	}
 }

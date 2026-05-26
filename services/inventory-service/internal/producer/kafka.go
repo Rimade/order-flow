@@ -10,6 +10,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"orderflow/inventory-service/internal/config"
 	"orderflow/inventory-service/internal/domain"
+	"orderflow/shared-observability/telemetry"
 )
 
 type KafkaProducer struct {
@@ -45,13 +46,15 @@ func (p *KafkaProducer) PublishRaw(
 	}
 	defer writer.Close()
 
+	headers := telemetry.InjectKafkaHeaders(ctx, []kafka.Header{
+		{Key: "event-type", Value: []byte(eventType)},
+		{Key: "event-id", Value: []byte(eventID)},
+	})
+
 	return writer.WriteMessages(ctx, kafka.Message{
-		Key:   []byte(key),
-		Value: body,
-		Headers: []kafka.Header{
-			{Key: "event-type", Value: []byte(eventType)},
-			{Key: "event-id", Value: []byte(eventID)},
-		},
+		Key:     []byte(key),
+		Value:   body,
+		Headers: headers,
 	})
 }
 
