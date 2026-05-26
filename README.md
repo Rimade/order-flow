@@ -90,8 +90,12 @@ docker compose up -d
 
 Подробнее: `infra/compose/README.md`.
 
+## Сервисы в разработке
+
+- `auth-service` — NestJS, JWT, PostgreSQL (`orderflow_auth`), порт `3001`
+
 ## Ближайшие шаги
 
-- завести первый NestJS-сервис (`api-gateway` или `auth-service`);
-- завести первый Go-сервис (`inventory-service` или `payment-service`);
+- завести `api-gateway` с проксированием и JWT guard;
+- завести первый Go-сервис (`inventory-service`);
 - подключить Kafka event flow между сервисами.
