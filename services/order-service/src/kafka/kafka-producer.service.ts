@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer, logLevel } from 'kafkajs';
+import { injectKafkaHeaders } from '../telemetry/kafka-propagation';
 export type KafkaPublishPayload = {
   topic: string;
   key: string;
@@ -50,10 +51,10 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
         {
           key: input.key,
           value: JSON.stringify(input.payload),
-          headers: {
+          headers: injectKafkaHeaders({
             'event-type': input.eventType,
             'event-id': input.eventId,
-          },
+          }),
         },
       ],
     });

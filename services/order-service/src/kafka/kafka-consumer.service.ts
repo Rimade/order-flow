@@ -5,7 +5,11 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { context, Span, trace } from '@opentelemetry/api';
 import { Consumer, Kafka, logLevel } from 'kafkajs';
+import {
+  extractKafkaContext,
+} from '../telemetry/kafka-propagation';
 import { OrderEventHandler } from './order-event.handler';
 
 @Injectable()
@@ -54,14 +58,26 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     this.running = true;
     void this.consumer.run({
       eachMessage: async ({ topic, message }) => {
-        try {
-          await this.eventHandler.handle(topic, message.value);
-        } catch (error) {
-          this.logger.error(
-            `failed to process message on ${topic}`,
-            error instanceof Error ? error.stack : String(error),
-          );
-        }
+        const parentContext = extractKafkaContext(message.headers ?? {});
+        const tracer = trace.getTracer('order-service');
+
+        await context.with(parentContext, async () =>
+          tracer.startActiveSpan(`kafka.consume ${topic}`, async (span: Span) => {
+            try {
+              await this.eventHandler.handle(topic, message.value);
+            } catch (error) {
+              span.recordException(
+                error instanceof Error ? error : new Error(String(error)),
+              );
+              this.logger.error(
+                `failed to process message on ${topic}`,
+                error instanceof Error ? error.stack : String(error),
+              );
+            } finally {
+              span.end();
+            }
+          }),
+        );
       },
     });
 

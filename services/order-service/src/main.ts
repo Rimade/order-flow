@@ -1,3 +1,7 @@
+import { initTracing } from './telemetry/tracing';
+
+initTracing(process.env.OTEL_SERVICE_NAME ?? 'order-service');
+
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';

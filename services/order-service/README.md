@@ -15,6 +15,10 @@ Env: `OUTBOX_POLL_INTERVAL_MS`, `OUTBOX_BATCH_SIZE`, `OUTBOX_MAX_RETRIES`.
 
 Подробнее: `docs/outbox-pattern.md`.
 
+## Tracing
+
+`OTEL_ENABLED=true` — HTTP + Kafka propagation (`traceparent` в headers). См. `docs/observability.md`.
+
 ## API
 
 | Метод | Путь                 | Auth | Описание           |
