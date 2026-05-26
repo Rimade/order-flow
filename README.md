@@ -92,6 +92,12 @@ cd ../api-gateway
 cp .env.example .env
 # JWT_ACCESS_SECRET должен совпадать с auth-service
 npm run start:dev
+
+# 4. Order (отдельный терминал, нужен Kafka)
+cd ../order-service
+cp .env.example .env
+npm run prisma:migrate:dev
+npm run start:dev
 ```
 
 Регистрация через gateway:
@@ -125,10 +131,11 @@ docker compose up -d
 | -------------- | ---- | ----------------------------------------- |
 | `api-gateway`  | 3000 | вход для клиентов, JWT, rate limit, proxy |
 | `auth-service` | 3001 | регистрация, логин, refresh, профиль      |
+| `order-service`| 3002 | заказы, Kafka `order.created`             |
 
 Клиенты ходят **только в gateway** (`http://localhost:3000`). Внутренние сервисы не публикуются наружу на этапе локальной разработки.
 
 ## Ближайшие шаги
 
-- завести `order-service` и первый Go-сервис `inventory-service`;
-- подключить Kafka event flow между сервисами.
+- завести `inventory-service` (Go) — consumer топика `order.created`;
+- добавить outbox pattern в `order-service` для надежной публикации событий.

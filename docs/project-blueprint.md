@@ -276,8 +276,8 @@
 
 ## Ближайший следующий шаг
 
-Skeleton, compose-стек, `auth-service` и `api-gateway` уже заведены. Следующий шаг:
+Skeleton, compose-стек, `auth-service`, `api-gateway` и `order-service` уже заведены. Следующий шаг:
 
-- инициализировать `order-service`;
-- инициализировать первый Go-сервис (`inventory-service`);
-- подключить Kafka event flow для заказов и остатков.
+- инициализировать `inventory-service` (Go) как consumer `order.created`;
+- добавить outbox pattern в `order-service`;
+- реализовать резерв остатков и события `inventory.reserved` / `inventory.rejected`.
