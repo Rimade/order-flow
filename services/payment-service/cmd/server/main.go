@@ -15,6 +15,7 @@ import (
 	"orderflow/payment-service/internal/consumer"
 	httpserver "orderflow/payment-service/internal/http"
 	"orderflow/payment-service/internal/producer"
+	"orderflow/payment-service/internal/rabbitmq"
 	"orderflow/payment-service/internal/repository"
 	"orderflow/payment-service/internal/service"
 )
@@ -55,7 +56,14 @@ func main() {
 	kafkaProducer := producer.NewKafkaProducer(cfg)
 	defer kafkaProducer.Close()
 
-	paymentService := service.NewPaymentService(repo, kafkaProducer, cfg, logger)
+	rabbitPublisher, err := rabbitmq.NewPublisher(cfg)
+	if err != nil {
+		logger.Error("rabbitmq connection failed", "error", err)
+		os.Exit(1)
+	}
+	defer rabbitPublisher.Close()
+
+	paymentService := service.NewPaymentService(repo, kafkaProducer, rabbitPublisher, cfg, logger)
 	inventoryConsumer := consumer.NewInventoryReservedConsumer(cfg, paymentService, logger)
 	defer inventoryConsumer.Close()
 

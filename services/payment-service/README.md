@@ -14,6 +14,7 @@
 | consume     | `inventory.reserved`|
 | produce     | `payment.succeeded` |
 | produce     | `payment.failed`    |
+| publish (RMQ) | `notification.payment.*` → `notification-service` |
 
 ## Demo-режим
 

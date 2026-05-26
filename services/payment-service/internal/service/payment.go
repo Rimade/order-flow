@@ -8,27 +8,31 @@ import (
 	"orderflow/payment-service/internal/config"
 	"orderflow/payment-service/internal/domain"
 	"orderflow/payment-service/internal/producer"
+	"orderflow/payment-service/internal/rabbitmq"
 	"orderflow/payment-service/internal/repository"
 )
 
 type PaymentService struct {
-	repo     *repository.PaymentRepository
-	producer *producer.KafkaProducer
-	cfg      config.Config
-	logger   *slog.Logger
+	repo            *repository.PaymentRepository
+	kafkaProducer   *producer.KafkaProducer
+	rabbitPublisher *rabbitmq.Publisher
+	cfg             config.Config
+	logger          *slog.Logger
 }
 
 func NewPaymentService(
 	repo *repository.PaymentRepository,
-	producer *producer.KafkaProducer,
+	kafkaProducer *producer.KafkaProducer,
+	rabbitPublisher *rabbitmq.Publisher,
 	cfg config.Config,
 	logger *slog.Logger,
 ) *PaymentService {
 	return &PaymentService{
-		repo:     repo,
-		producer: producer,
-		cfg:      cfg,
-		logger:   logger,
+		repo:            repo,
+		kafkaProducer:   kafkaProducer,
+		rabbitPublisher: rabbitPublisher,
+		cfg:             cfg,
+		logger:          logger,
 	}
 }
 
@@ -75,15 +79,36 @@ func (s *PaymentService) HandleInventoryReserved(ctx context.Context, payload []
 
 	if status == "SUCCEEDED" {
 		s.logger.Info("payment succeeded", "orderId", event.Data.OrderID, "paymentId", paymentID)
-		return s.producer.PublishSucceeded(
+
+		if err = s.kafkaProducer.PublishSucceeded(
 			ctx,
 			paymentID,
 			event.Data.OrderID,
+			event.Data.TotalAmount,
+			event.Data.Currency,
+		); err != nil {
+			return err
+		}
+
+		return s.rabbitPublisher.PublishPaymentSucceeded(
+			ctx,
+			event.Data.OrderID,
+			paymentID,
 			event.Data.TotalAmount,
 			event.Data.Currency,
 		)
 	}
 
 	s.logger.Warn("payment failed", "orderId", event.Data.OrderID, "paymentId", paymentID)
-	return s.producer.PublishFailed(ctx, paymentID, event.Data.OrderID, "payment_declined")
+
+	if err = s.kafkaProducer.PublishFailed(ctx, paymentID, event.Data.OrderID, "payment_declined"); err != nil {
+		return err
+	}
+
+	return s.rabbitPublisher.PublishPaymentFailed(
+		ctx,
+		event.Data.OrderID,
+		paymentID,
+		"payment_declined",
+	)
 }

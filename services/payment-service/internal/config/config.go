@@ -17,6 +17,8 @@ type Config struct {
 	KafkaPaymentSucceededTopic  string
 	KafkaPaymentFailedTopic     string
 	PaymentSimulateSuccess      bool
+	RabbitMQURL                 string
+	RabbitMQExchange            string
 }
 
 func Load() (Config, error) {
@@ -45,6 +47,8 @@ func Load() (Config, error) {
 		KafkaPaymentSucceededTopic:  getenv("KAFKA_PAYMENT_SUCCEEDED_TOPIC", "payment.succeeded"),
 		KafkaPaymentFailedTopic:     getenv("KAFKA_PAYMENT_FAILED_TOPIC", "payment.failed"),
 		PaymentSimulateSuccess:      simulateSuccess,
+		RabbitMQURL:                 getenv("RABBITMQ_URL", "amqp://orderflow:orderflow@localhost:5672/"),
+		RabbitMQExchange:            getenv("RABBITMQ_EXCHANGE", "orderflow.notifications"),
 	}, nil
 }
 

@@ -108,6 +108,11 @@ go run ./cmd/server
 cd ../payment-service
 cp .env.example .env
 go run ./cmd/server
+
+# 7. Notification (Go + RabbitMQ)
+cd ../notification-service
+cp .env.example .env
+go run ./cmd/server
 ```
 
 ## Event flow (core)
@@ -120,7 +125,12 @@ Client -> api-gateway -> order-service
               | publish (on success)
               v
         payment-service -> payment.succeeded | payment.failed
+              | publish notification.* (RabbitMQ)
+              v
+      notification-service -> email/webhook (simulated)
 ```
+
+**Брокеры:** Kafka для domain events, RabbitMQ для notification queue.
 
 Регистрация через gateway:
 
@@ -155,7 +165,8 @@ docker compose up -d
 | `auth-service` | 3001 | регистрация, логин, refresh, профиль      |
 | `order-service`| 3002 | заказы, Kafka `order.created`             |
 | `inventory-service` | 3003 | остатки, consumer/producer Kafka   |
-| `payment-service`   | 3004 | оплата, consumer/producer Kafka    |
+| `payment-service`   | 3004 | оплата, Kafka + RabbitMQ publish   |
+| `notification-service` | 3005 | уведомления, **RabbitMQ** consumer |
 
 Клиенты ходят **только в gateway** (`http://localhost:3000`). Внутренние сервисы не публикуются наружу на этапе локальной разработки.
 
@@ -163,4 +174,4 @@ docker compose up -d
 
 - подключить `order-service` как consumer `payment.succeeded` / `payment.failed` для финализации заказа;
 - добавить outbox pattern для надежной публикации событий;
-- `notification-service` для уведомлений пользователю.
+- `order-service` consumer для финализации заказа по `payment.succeeded`.

@@ -50,12 +50,20 @@
 
 - `PostgreSQL` - основное хранилище;
 - `Redis` - кэш, ephemeral state, idempotency, locks;
-- `Kafka` - event bus и асинхронные коммуникации;
+- `Kafka` - event bus и domain events между core-сервисами;
+- `RabbitMQ` - task queue для уведомлений (`notification-service`);
 - `Docker Compose` - локальная разработка;
 - `OpenTelemetry` - трассировка и метрики;
 - `Jaeger` - distributed tracing;
 - `Prometheus` + `Grafana` - метрики и дашборды;
-- `Kafka UI` - просмотр топиков и сообщений.
+- `Kafka UI` - просмотр топиков и сообщений;
+- `RabbitMQ Management` - просмотр очередей и bindings.
+
+### Почему Kafka + RabbitMQ
+
+- `Kafka` хорош для event streaming и saga между `order` / `inventory` / `payment`.
+- `RabbitMQ` хорош для work-queue задач с быстрым ack/retry (email, webhooks, push).
+- `notification-service` сознательно на RabbitMQ, чтобы в проекте был mixed-broker опыт как в реальных компаниях.
 
 ## Состав сервисов
 
@@ -276,8 +284,8 @@
 
 ## Ближайший следующий шаг
 
-Core event flow (`order` -> `inventory` -> `payment`) уже реализован. Следующий шаг:
+Core flow (`order` -> `inventory` -> `payment` -> `notification` via RabbitMQ) реализован. Следующий шаг:
 
 - обновлять статус заказа в `order-service` по `payment.succeeded` / `payment.failed`;
 - добавить outbox pattern для надежной публикации событий;
-- реализовать `notification-service`.
+- подключить Redis (rate limit/idempotency) на gateway.
