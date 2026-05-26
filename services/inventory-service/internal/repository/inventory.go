@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"orderflow/inventory-service/internal/domain"
+	"orderflow/inventory-service/internal/producer"
 )
 
 var ErrInsufficientStock = errors.New("insufficient stock")
@@ -52,11 +54,40 @@ func (r *InventoryRepository) IsEventProcessed(ctx context.Context, eventID stri
 	return exists, err
 }
 
-func (r *InventoryRepository) ReserveOrder(
+func (r *InventoryRepository) insertOutbox(
 	ctx context.Context,
-	eventID string,
+	tx pgx.Tx,
+	outboxID string,
+	aggregateID string,
+	topic string,
+	messageKey string,
+	eventType string,
+	payload []byte,
+) error {
+	_, err := tx.Exec(
+		ctx,
+		`INSERT INTO outbox_messages (
+			id, aggregate_id, event_type, topic, message_key, payload, status
+		) VALUES ($1, $2, $3, $4, $5, $6::jsonb, 'PENDING')`,
+		outboxID,
+		aggregateID,
+		eventType,
+		topic,
+		messageKey,
+		string(payload),
+	)
+
+	return err
+}
+
+func (r *InventoryRepository) ReserveOrderWithOutbox(
+	ctx context.Context,
+	sourceEventID string,
 	orderID string,
 	items []domain.OrderCreatedItem,
+	totalAmount string,
+	currency string,
+	reservedTopic string,
 ) ([]domain.ReservationItem, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -128,10 +159,29 @@ func (r *InventoryRepository) ReserveOrder(
 	_, err = tx.Exec(
 		ctx,
 		`INSERT INTO processed_events (event_id, event_type) VALUES ($1, $2)`,
-		eventID,
+		sourceEventID,
 		"order.created",
 	)
 	if err != nil {
+		return nil, err
+	}
+
+	reservedEvent := producer.BuildReservedEvent(orderID, totalAmount, currency, reservations)
+	payload, err := json.Marshal(reservedEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = r.insertOutbox(
+		ctx,
+		tx,
+		reservedEvent.EventID,
+		orderID,
+		reservedTopic,
+		orderID,
+		reservedEvent.EventType,
+		payload,
+	); err != nil {
 		return nil, err
 	}
 
@@ -140,4 +190,50 @@ func (r *InventoryRepository) ReserveOrder(
 	}
 
 	return reservations, nil
+}
+
+func (r *InventoryRepository) RecordRejectionWithOutbox(
+	ctx context.Context,
+	sourceEventID string,
+	orderID string,
+	reason string,
+	productID string,
+	rejectedTopic string,
+) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO processed_events (event_id, event_type) VALUES ($1, $2)`,
+		sourceEventID,
+		"order.created",
+	)
+	if err != nil {
+		return err
+	}
+
+	rejectedEvent := producer.BuildRejectedEvent(orderID, reason, productID)
+	payload, err := json.Marshal(rejectedEvent)
+	if err != nil {
+		return err
+	}
+
+	if err = r.insertOutbox(
+		ctx,
+		tx,
+		rejectedEvent.EventID,
+		orderID,
+		rejectedTopic,
+		orderID,
+		rejectedEvent.EventType,
+		payload,
+	); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }

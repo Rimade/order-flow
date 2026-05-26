@@ -13,79 +13,20 @@ import (
 )
 
 type KafkaProducer struct {
-	reservedWriter *kafka.Writer
-	rejectedWriter *kafka.Writer
+	brokers []string
 }
 
 func NewKafkaProducer(cfg config.Config) *KafkaProducer {
-	return &KafkaProducer{
-		reservedWriter: &kafka.Writer{
-			Addr:         kafka.TCP(cfg.KafkaBrokers...),
-			Topic:        cfg.KafkaInventoryReservedTopic,
-			RequiredAcks: kafka.RequireAll,
-			Balancer:     &kafka.LeastBytes{},
-		},
-		rejectedWriter: &kafka.Writer{
-			Addr:         kafka.TCP(cfg.KafkaBrokers...),
-			Topic:        cfg.KafkaInventoryRejectedTopic,
-			RequiredAcks: kafka.RequireAll,
-			Balancer:     &kafka.LeastBytes{},
-		},
-	}
+	return &KafkaProducer{brokers: cfg.KafkaBrokers}
 }
 
 func (p *KafkaProducer) Close() error {
-	reservedErr := p.reservedWriter.Close()
-	rejectedErr := p.rejectedWriter.Close()
-
-	if reservedErr != nil {
-		return reservedErr
-	}
-
-	return rejectedErr
+	return nil
 }
 
-func (p *KafkaProducer) PublishReserved(
+func (p *KafkaProducer) PublishRaw(
 	ctx context.Context,
-	orderID string,
-	totalAmount string,
-	currency string,
-	reservations []domain.ReservationItem,
-) error {
-	event := domain.InventoryReservedEvent{
-		EventID:    uuid.NewString(),
-		EventType:  "inventory.reserved",
-		OccurredAt: time.Now().UTC().Format(time.RFC3339),
-	}
-	event.Data.OrderID = orderID
-	event.Data.TotalAmount = totalAmount
-	event.Data.Currency = currency
-	event.Data.Reservations = reservations
-
-	return p.publish(ctx, p.reservedWriter, orderID, event.EventType, event.EventID, event)
-}
-
-func (p *KafkaProducer) PublishRejected(
-	ctx context.Context,
-	orderID string,
-	reason string,
-	productID string,
-) error {
-	event := domain.InventoryRejectedEvent{
-		EventID:    uuid.NewString(),
-		EventType:  "inventory.rejected",
-		OccurredAt: time.Now().UTC().Format(time.RFC3339),
-	}
-	event.Data.OrderID = orderID
-	event.Data.Reason = reason
-	event.Data.ProductID = productID
-
-	return p.publish(ctx, p.rejectedWriter, orderID, event.EventType, event.EventID, event)
-}
-
-func (p *KafkaProducer) publish(
-	ctx context.Context,
-	writer *kafka.Writer,
+	topic string,
 	key string,
 	eventType string,
 	eventID string,
@@ -96,18 +37,56 @@ func (p *KafkaProducer) publish(
 		return fmt.Errorf("marshal event: %w", err)
 	}
 
-	message := kafka.Message{
+	writer := &kafka.Writer{
+		Addr:         kafka.TCP(p.brokers...),
+		Topic:        topic,
+		RequiredAcks: kafka.RequireAll,
+		Balancer:     &kafka.LeastBytes{},
+	}
+	defer writer.Close()
+
+	return writer.WriteMessages(ctx, kafka.Message{
 		Key:   []byte(key),
 		Value: body,
 		Headers: []kafka.Header{
 			{Key: "event-type", Value: []byte(eventType)},
 			{Key: "event-id", Value: []byte(eventID)},
 		},
-	}
+	})
+}
 
-	if err = writer.WriteMessages(ctx, message); err != nil {
-		return fmt.Errorf("write kafka message: %w", err)
+func BuildReservedEvent(
+	orderID string,
+	totalAmount string,
+	currency string,
+	reservations []domain.ReservationItem,
+) domain.InventoryReservedEvent {
+	event := domain.InventoryReservedEvent{
+		EventID:    uuid.NewString(),
+		EventType:  "inventory.reserved",
+		OccurredAt: time.Now().UTC().Format(time.RFC3339),
 	}
+	event.Data.OrderID = orderID
+	event.Data.TotalAmount = totalAmount
+	event.Data.Currency = currency
+	event.Data.Reservations = reservations
 
-	return nil
+	return event
+}
+
+func BuildRejectedEvent(
+	orderID string,
+	reason string,
+	productID string,
+) domain.InventoryRejectedEvent {
+	event := domain.InventoryRejectedEvent{
+		EventID:    uuid.NewString(),
+		EventType:  "inventory.rejected",
+		OccurredAt: time.Now().UTC().Format(time.RFC3339),
+	}
+	event.Data.OrderID = orderID
+	event.Data.Reason = reason
+	event.Data.ProductID = productID
+
+	return event
 }

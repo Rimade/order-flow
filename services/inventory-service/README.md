@@ -2,10 +2,18 @@
 
 **Stack:** Go + PostgreSQL + Kafka
 
-Сервис остатков OrderFlow: слушает `order.created`, резервирует товар, публикует `inventory.reserved` или `inventory.rejected`.
+Сервис остатков OrderFlow: слушает `order.created`, резервирует товар, публикует `inventory.reserved` или `inventory.rejected` **через transactional outbox**.
 
-**Порт:** `3003` (HTTP health)  
+**Порт:** `3003` (HTTP health)
 **БД:** `orderflow_inventory`
+
+## Outbox
+
+Резерв / отказ и запись события — в одной SQL-транзакции. Goroutine `internal/outbox` relay публикует в Kafka.
+
+Env: `OUTBOX_POLL_INTERVAL_MS`, `OUTBOX_BATCH_SIZE`, `OUTBOX_MAX_RETRIES`.
+
+Подробнее: `docs/outbox-pattern.md`.
 
 ## Production-практики
 

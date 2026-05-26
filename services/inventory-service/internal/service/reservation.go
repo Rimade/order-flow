@@ -7,27 +7,23 @@ import (
 	"log/slog"
 	"strings"
 
+	"orderflow/inventory-service/internal/config"
 	"orderflow/inventory-service/internal/domain"
-	"orderflow/inventory-service/internal/producer"
 	"orderflow/inventory-service/internal/repository"
 )
 
 type ReservationService struct {
-	repo     *repository.InventoryRepository
-	producer *producer.KafkaProducer
-	logger   *slog.Logger
+	repo   *repository.InventoryRepository
+	cfg    config.Config
+	logger *slog.Logger
 }
 
 func NewReservationService(
 	repo *repository.InventoryRepository,
-	producer *producer.KafkaProducer,
+	cfg config.Config,
 	logger *slog.Logger,
 ) *ReservationService {
-	return &ReservationService{
-		repo:     repo,
-		producer: producer,
-		logger:   logger,
-	}
+	return &ReservationService{repo: repo, cfg: cfg, logger: logger}
 }
 
 func (s *ReservationService) HandleOrderCreated(ctx context.Context, payload []byte) error {
@@ -51,11 +47,14 @@ func (s *ReservationService) HandleOrderCreated(ctx context.Context, payload []b
 		return nil
 	}
 
-	reservations, err := s.repo.ReserveOrder(
+	reservations, err := s.repo.ReserveOrderWithOutbox(
 		ctx,
 		event.EventID,
 		event.Data.OrderID,
 		event.Data.Items,
+		event.Data.TotalAmount,
+		event.Data.Currency,
+		s.cfg.KafkaInventoryReservedTopic,
 	)
 	if err != nil {
 		reason := "reservation_failed"
@@ -73,31 +72,23 @@ func (s *ReservationService) HandleOrderCreated(ctx context.Context, payload []b
 			"error", err,
 		)
 
-		if markErr := s.repo.MarkEventProcessed(ctx, event.EventID, event.EventType); markErr != nil {
-			return markErr
-		}
-
-		publishErr := s.producer.PublishRejected(ctx, event.Data.OrderID, reason, productID)
-		if publishErr != nil {
-			return publishErr
-		}
-
-		return nil
+		return s.repo.RecordRejectionWithOutbox(
+			ctx,
+			event.EventID,
+			event.Data.OrderID,
+			reason,
+			productID,
+			s.cfg.KafkaInventoryRejectedTopic,
+		)
 	}
 
 	s.logger.Info(
-		"inventory reserved",
+		"inventory reserved (outbox)",
 		"orderId", event.Data.OrderID,
 		"items", len(reservations),
 	)
 
-	return s.producer.PublishReserved(
-		ctx,
-		event.Data.OrderID,
-		event.Data.TotalAmount,
-		event.Data.Currency,
-		reservations,
-	)
+	return nil
 }
 
 func extractProductID(message string) string {

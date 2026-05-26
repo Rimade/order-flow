@@ -14,6 +14,7 @@ import (
 	"orderflow/inventory-service/internal/config"
 	"orderflow/inventory-service/internal/consumer"
 	httpserver "orderflow/inventory-service/internal/http"
+	"orderflow/inventory-service/internal/outbox"
 	"orderflow/inventory-service/internal/producer"
 	"orderflow/inventory-service/internal/repository"
 	"orderflow/inventory-service/internal/service"
@@ -55,11 +56,17 @@ func main() {
 	kafkaProducer := producer.NewKafkaProducer(cfg)
 	defer kafkaProducer.Close()
 
-	reservationService := service.NewReservationService(repo, kafkaProducer, logger)
+	reservationService := service.NewReservationService(repo, cfg, logger)
 	orderConsumer := consumer.NewOrderCreatedConsumer(cfg, reservationService, logger)
 	defer orderConsumer.Close()
 
+	outboxRelay := outbox.NewRelay(pool, kafkaProducer, cfg, logger)
+
 	httpServer := httpserver.NewServer(port, repo, logger)
+
+	go func() {
+		outboxRelay.Run(ctx)
+	}()
 
 	go func() {
 		if err = orderConsumer.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
