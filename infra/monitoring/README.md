@@ -1,9 +1,24 @@
-# Monitoring
+# Monitoring (Prometheus + Grafana)
 
-Здесь появятся конфигурации для:
+Локальный стек метрик для OrderFlow.
 
-- `Prometheus`
-- `Grafana`
-- `OpenTelemetry` collectors
+## Запуск
 
-Подключение observability запланировано на этапе 4 roadmap проекта.
+```bash
+cd infra/compose
+docker compose up -d prometheus grafana
+```
+
+| Сервис | URL |
+| ------ | --- |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3100 (`admin` / `admin`) |
+
+Сервисы приложения должны работать на хосте — Prometheus скрейпит `host.docker.internal`.
+
+## Конфигурация
+
+- `prometheus/prometheus.yml` — targets saga-сервисов
+- `grafana/provisioning/` — datasource + дашборд **OrderFlow Overview**
+
+Подробнее: `docs/metrics.md`.

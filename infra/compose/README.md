@@ -12,6 +12,8 @@
 | kafka-ui  | 8080              | просмотр топиков        |
 | rabbitmq  | 5672 / 15672      | task queue / UI         |
 | jaeger    | 16686 / 4318      | tracing UI / OTLP HTTP  |
+| prometheus | 9090             | метрики                 |
+| grafana   | 3100              | дашборды                |
 
 ## Запуск
 
@@ -42,6 +44,8 @@ docker compose down
 - RabbitMQ UI: http://localhost:15672
 - Jaeger UI: http://localhost:16686
 - OTLP HTTP: http://localhost:4318/v1/traces
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3100
 
 При первом запуске Postgres создает отдельные БД для сервисов, начиная с `orderflow_auth` для `auth-service`.
 
