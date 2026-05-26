@@ -7,8 +7,10 @@
 | `order.created`       | `order-service`     | `inventory-service`     |
 | `inventory.reserved`  | `inventory-service` | `payment-service`       |
 | `inventory.rejected`  | `inventory-service` | — (planned: order)      |
-| `payment.succeeded`   | `payment-service`   | — (planned: order)      |
-| `payment.failed`      | `payment-service`   | — (planned: order)      |
+| `payment.succeeded`   | `payment-service`   | `order-service`         |
+| `payment.failed`      | `payment-service`   | `order-service`         |
+| `inventory.reserved`  | `inventory-service` | `order-service`         |
+| `inventory.rejected`  | `inventory-service` | `order-service`         |
 
 ## Локальная разработка
 

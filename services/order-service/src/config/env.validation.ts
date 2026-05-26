@@ -39,6 +39,26 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   KAFKA_ORDER_TOPIC!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_CONSUMER_GROUP!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_INVENTORY_RESERVED_TOPIC!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_INVENTORY_REJECTED_TOPIC!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_PAYMENT_SUCCEEDED_TOPIC!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_PAYMENT_FAILED_TOPIC!: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

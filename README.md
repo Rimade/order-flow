@@ -115,22 +115,25 @@ cp .env.example .env
 go run ./cmd/server
 ```
 
-## Event flow (core)
+## Event flow (полный saga)
 
 ```text
-Client -> api-gateway -> order-service
-              | publish order.created
+Client -> gateway -> order-service (PENDING)
+              | order.created
               v
        inventory-service -> inventory.reserved | inventory.rejected
-              | publish (on success)
+              | reserved
+              v
+        order-service (PAYMENT_PENDING)
+              |
               v
         payment-service -> payment.succeeded | payment.failed
-              | publish notification.* (RabbitMQ)
+              | succeeded
               v
-      notification-service -> email/webhook (simulated)
+        order-service (CONFIRMED) + notification-service (RabbitMQ)
 ```
 
-**Брокеры:** Kafka для domain events, RabbitMQ для notification queue.
+**Брокеры:** Kafka — domain/saga events, RabbitMQ — notification tasks.
 
 Регистрация через gateway:
 
@@ -163,7 +166,7 @@ docker compose up -d
 | -------------- | ---- | ----------------------------------------- |
 | `api-gateway`  | 3000 | вход для клиентов, JWT, rate limit, proxy |
 | `auth-service` | 3001 | регистрация, логин, refresh, профиль      |
-| `order-service`| 3002 | заказы, Kafka `order.created`             |
+| `order-service`| 3002 | заказы, Kafka saga producer/consumer      |
 | `inventory-service` | 3003 | остатки, consumer/producer Kafka   |
 | `payment-service`   | 3004 | оплата, Kafka + RabbitMQ publish   |
 | `notification-service` | 3005 | уведомления, **RabbitMQ** consumer |
@@ -172,6 +175,6 @@ docker compose up -d
 
 ## Ближайшие шаги
 
-- подключить `order-service` как consumer `payment.succeeded` / `payment.failed` для финализации заказа;
-- добавить outbox pattern для надежной публикации событий;
-- `order-service` consumer для финализации заказа по `payment.succeeded`.
+- outbox pattern для надежной публикации Kafka-событий;
+- Redis distributed rate limit на gateway;
+- OpenTelemetry tracing между сервисами.

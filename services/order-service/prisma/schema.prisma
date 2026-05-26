@@ -9,6 +9,7 @@ datasource db {
 
 enum OrderStatus {
   PENDING
+  PAYMENT_PENDING
   CONFIRMED
   CANCELLED
   FAILED
@@ -26,6 +27,14 @@ model Order {
 
   @@index([userId])
   @@map("orders")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id")
+  eventType   String   @map("event_type")
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
 }
 
 model OrderItem {

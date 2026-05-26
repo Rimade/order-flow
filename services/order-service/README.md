@@ -2,9 +2,9 @@
 
 **Stack:** NestJS + Prisma + PostgreSQL + Kafka
 
-Сервис заказов OrderFlow: создание заказа, чтение списка и деталей, публикация события `order.created` в Kafka.
+Сервис заказов OrderFlow: API для клиентов, публикация `order.created`, **замыкание saga** через Kafka consumers.
 
-**Порт по умолчанию:** `3002`  
+**Порт:** `3002`  
 **БД:** `orderflow_order`
 
 ## API
@@ -12,35 +12,32 @@
 | Метод | Путь                 | Auth | Описание           |
 | ----- | -------------------- | ---- | ------------------ |
 | POST  | `/api/v1/orders`     | JWT  | создать заказ      |
-| GET   | `/api/v1/orders`     | JWT  | список своих заказов |
+| GET   | `/api/v1/orders`     | JWT  | список заказов     |
 | GET   | `/api/v1/orders/:id` | JWT  | детали заказа      |
 | GET   | `/health`            | —    | healthcheck        |
 
-Рекомендуется вызывать через `api-gateway` (`http://localhost:3000`).
+## Статусы заказа (state machine)
+
+| Статус            | Когда                                      |
+| ----------------- | ------------------------------------------ |
+| `PENDING`         | заказ создан                               |
+| `PAYMENT_PENDING` | `inventory.reserved`                     |
+| `CONFIRMED`       | `payment.succeeded`                        |
+| `CANCELLED`       | `inventory.rejected`                       |
+| `FAILED`          | `payment.failed`                           |
 
 ## Kafka
 
-После создания заказа публикуется событие в топик `order.created` (настраивается через `KAFKA_ORDER_TOPIC`).
+**Producer:** `order.created`
 
-Формат сообщения:
+**Consumer (saga):**
 
-```json
-{
-  "eventId": "uuid",
-  "eventType": "order.created",
-  "occurredAt": "2026-05-26T12:00:00.000Z",
-  "data": {
-    "orderId": "uuid",
-    "userId": "uuid",
-    "status": "PENDING",
-    "totalAmount": "199.98",
-    "currency": "USD",
-    "items": []
-  }
-}
-```
+- `inventory.reserved`
+- `inventory.rejected`
+- `payment.succeeded`
+- `payment.failed`
 
-> Следующий production-шаг: transactional outbox вместо прямой публикации после insert.
+Idempotency: таблица `processed_events` по `eventId`.
 
 ## Запуск
 
@@ -51,15 +48,13 @@ npm run prisma:migrate:dev
 npm run start:dev
 ```
 
-Требуется запущенные Postgres, Kafka и совпадающий `JWT_ACCESS_SECRET` с `auth-service` / `api-gateway`.
+## Проверка финального статуса
 
-## Пример через gateway
+После полного flow:
 
 ```bash
-# 1. Получить accessToken (login/register)
-# 2. Создать заказ
-curl -X POST http://localhost:3000/api/v1/orders \
-  -H "Authorization: Bearer <accessToken>" \
-  -H "Content-Type: application/json" \
-  -d "{\"items\":[{\"productId\":\"sku-1\",\"productName\":\"Demo Product\",\"quantity\":2,\"unitPrice\":99.99}]}"
+curl http://localhost:3000/api/v1/orders/<orderId> \
+  -H "Authorization: Bearer <accessToken>"
 ```
+
+Ожидаемый статус: `CONFIRMED`.

@@ -284,8 +284,8 @@
 
 ## Ближайший следующий шаг
 
-Core flow (`order` -> `inventory` -> `payment` -> `notification` via RabbitMQ) реализован. Следующий шаг:
+Полный core saga (`order` -> `inventory` -> `payment` -> `notification`, статусы заказа в `order-service`) реализован. Следующий шаг:
 
-- обновлять статус заказа в `order-service` по `payment.succeeded` / `payment.failed`;
-- добавить outbox pattern для надежной публикации событий;
-- подключить Redis (rate limit/idempotency) на gateway.
+- outbox pattern для Kafka producers;
+- Redis на gateway (distributed rate limit);
+- observability (OpenTelemetry, метрики, трассировка).
