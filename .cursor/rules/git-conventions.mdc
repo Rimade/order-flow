@@ -1,0 +1,15 @@
+---
+description: Keep git history small, readable, and conventional
+alwaysApply: true
+---
+
+# Git Conventions
+
+- Делай маленькие логически цельные коммиты.
+- Не смешивай docs, infra, refactor и feature в одном коммите без явной причины.
+- Используй `Conventional Commits` в формате `type(scope): summary`.
+- Для этого проекта предпочитай `scope`: `repo`, `project`, `gateway`, `auth`, `catalog`, `order`, `inventory`, `payment`, `notification`, `analytics`, `infra`, `observability`.
+- Перед коммитом проверяй, что staged changes можно объяснить одной идеей.
+- Не коммить секреты, `.env`, артефакты сборки и локальные временные файлы.
+- Если архитектурное решение влияет на проект в целом, обновляй `docs/project-blueprint.md`.
+- Если меняется подход к истории, веткам или коммитам, обновляй `docs/git-workflow.md`.

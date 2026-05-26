@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+bin/
+tmp/
+.tmp/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+coverage.out
+*.test
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and runtime files
+logs/
+*.log
+*.pid
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Cursor local state
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
