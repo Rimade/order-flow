@@ -12,7 +12,10 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   app.setGlobalPrefix('api/v1', {
-    exclude: [{ path: 'health', method: RequestMethod.ALL }],
+    exclude: [
+      { path: 'health', method: RequestMethod.ALL },
+      { path: 'metrics', method: RequestMethod.ALL },
+    ],
   });
 
   app.useGlobalPipes(
