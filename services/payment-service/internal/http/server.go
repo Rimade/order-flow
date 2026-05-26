@@ -10,6 +10,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"orderflow/payment-service/internal/repository"
+	"orderflow/shared-observability/metrics"
 )
 
 type Server struct {
@@ -26,10 +27,16 @@ func NewServer(port int, repo *repository.PaymentRepository, logger *slog.Logger
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.handleHealth)
+	metrics.RegisterHandler(mux)
+
+	handler := metrics.Middleware(
+		"payment-service",
+		otelhttp.NewHandler(mux, "payment-service"),
+	)
 
 	s.server = &http.Server{
 		Addr:              ":" + strconv.Itoa(port),
-		Handler:           otelhttp.NewHandler(mux, "payment-service"),
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

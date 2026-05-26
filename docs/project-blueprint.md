@@ -285,7 +285,7 @@
 
 ## Ближайший следующий шаг
 
-Полный core saga, outbox, Redis rate limit и **OpenTelemetry tracing** (Jaeger) реализованы. Следующий шаг:
+Полный core saga, outbox, Redis rate limit, tracing (Jaeger) и **Prometheus + Grafana** реализованы. Следующий шаг:
 
-- Prometheus + Grafana метрики;
-- DLQ и компенсации saga.
+- DLQ и компенсации saga;
+- бизнес-метрики saga (orders created, payments failed).

@@ -10,6 +10,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"orderflow/inventory-service/internal/repository"
+	"orderflow/shared-observability/metrics"
 )
 
 type Server struct {
@@ -30,10 +31,16 @@ func NewServer(
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.handleHealth)
+	metrics.RegisterHandler(mux)
+
+	handler := metrics.Middleware(
+		"inventory-service",
+		otelhttp.NewHandler(mux, "inventory-service"),
+	)
 
 	s.server = &http.Server{
-		Addr: ":" + strconv.Itoa(port),
-		Handler: otelhttp.NewHandler(mux, "inventory-service"),
+		Addr:              ":" + strconv.Itoa(port),
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

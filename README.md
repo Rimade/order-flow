@@ -175,8 +175,9 @@ docker compose up -d
 
 ## Ближайшие шаги
 
-- Prometheus + Grafana;
 - DLQ для failed outbox / consumer messages;
 - компенсации saga.
 
-Трассировка: `docs/observability.md`, Jaeger UI http://localhost:16686
+Observability:
+- Трассировка: `docs/observability.md`, Jaeger http://localhost:16686
+- Метрики: `docs/metrics.md`, Grafana http://localhost:3100
