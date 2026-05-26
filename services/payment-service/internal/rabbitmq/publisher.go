@@ -73,6 +73,32 @@ func (p *Publisher) Close() error {
 	return nil
 }
 
+func (p *Publisher) PublishNotification(
+	ctx context.Context,
+	routingKey string,
+	message NotificationMessage,
+) error {
+	body, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+
+	return p.channel.PublishWithContext(
+		ctx,
+		p.exchange,
+		routingKey,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType:  "application/json",
+			DeliveryMode: amqp.Persistent,
+			MessageId:    message.MessageID,
+			Timestamp:    time.Now().UTC(),
+			Body:         body,
+		},
+	)
+}
+
 func (p *Publisher) PublishPaymentSucceeded(
 	ctx context.Context,
 	orderID string,

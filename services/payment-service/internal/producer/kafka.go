@@ -13,74 +13,20 @@ import (
 )
 
 type KafkaProducer struct {
-	succeededWriter *kafka.Writer
-	failedWriter    *kafka.Writer
+	brokers []string
 }
 
 func NewKafkaProducer(cfg config.Config) *KafkaProducer {
-	return &KafkaProducer{
-		succeededWriter: &kafka.Writer{
-			Addr:         kafka.TCP(cfg.KafkaBrokers...),
-			Topic:        cfg.KafkaPaymentSucceededTopic,
-			RequiredAcks: kafka.RequireAll,
-		},
-		failedWriter: &kafka.Writer{
-			Addr:         kafka.TCP(cfg.KafkaBrokers...),
-			Topic:        cfg.KafkaPaymentFailedTopic,
-			RequiredAcks: kafka.RequireAll,
-		},
-	}
+	return &KafkaProducer{brokers: cfg.KafkaBrokers}
 }
 
 func (p *KafkaProducer) Close() error {
-	if err := p.succeededWriter.Close(); err != nil {
-		return err
-	}
-
-	return p.failedWriter.Close()
+	return nil
 }
 
-func (p *KafkaProducer) PublishSucceeded(
+func (p *KafkaProducer) PublishRaw(
 	ctx context.Context,
-	paymentID string,
-	orderID string,
-	amount string,
-	currency string,
-) error {
-	event := domain.PaymentSucceededEvent{
-		EventID:    uuid.NewString(),
-		EventType:  "payment.succeeded",
-		OccurredAt: time.Now().UTC().Format(time.RFC3339),
-	}
-	event.Data.PaymentID = paymentID
-	event.Data.OrderID = orderID
-	event.Data.Amount = amount
-	event.Data.Currency = currency
-
-	return p.publish(ctx, p.succeededWriter, orderID, event.EventType, event.EventID, event)
-}
-
-func (p *KafkaProducer) PublishFailed(
-	ctx context.Context,
-	paymentID string,
-	orderID string,
-	reason string,
-) error {
-	event := domain.PaymentFailedEvent{
-		EventID:    uuid.NewString(),
-		EventType:  "payment.failed",
-		OccurredAt: time.Now().UTC().Format(time.RFC3339),
-	}
-	event.Data.PaymentID = paymentID
-	event.Data.OrderID = orderID
-	event.Data.Reason = reason
-
-	return p.publish(ctx, p.failedWriter, orderID, event.EventType, event.EventID, event)
-}
-
-func (p *KafkaProducer) publish(
-	ctx context.Context,
-	writer *kafka.Writer,
+	topic string,
 	key string,
 	eventType string,
 	eventID string,
@@ -91,6 +37,13 @@ func (p *KafkaProducer) publish(
 		return fmt.Errorf("marshal event: %w", err)
 	}
 
+	writer := &kafka.Writer{
+		Addr:         kafka.TCP(p.brokers...),
+		Topic:        topic,
+		RequiredAcks: kafka.RequireAll,
+	}
+	defer writer.Close()
+
 	return writer.WriteMessages(ctx, kafka.Message{
 		Key:   []byte(key),
 		Value: body,
@@ -99,4 +52,40 @@ func (p *KafkaProducer) publish(
 			{Key: "event-id", Value: []byte(eventID)},
 		},
 	})
+}
+
+func BuildSucceededEvent(
+	paymentID string,
+	orderID string,
+	amount string,
+	currency string,
+) domain.PaymentSucceededEvent {
+	event := domain.PaymentSucceededEvent{
+		EventID:    uuid.NewString(),
+		EventType:  "payment.succeeded",
+		OccurredAt: time.Now().UTC().Format(time.RFC3339),
+	}
+	event.Data.PaymentID = paymentID
+	event.Data.OrderID = orderID
+	event.Data.Amount = amount
+	event.Data.Currency = currency
+
+	return event
+}
+
+func BuildFailedEvent(
+	paymentID string,
+	orderID string,
+	reason string,
+) domain.PaymentFailedEvent {
+	event := domain.PaymentFailedEvent{
+		EventID:    uuid.NewString(),
+		EventType:  "payment.failed",
+		OccurredAt: time.Now().UTC().Format(time.RFC3339),
+	}
+	event.Data.PaymentID = paymentID
+	event.Data.OrderID = orderID
+	event.Data.Reason = reason
+
+	return event
 }

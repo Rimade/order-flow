@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"orderflow/payment-service/internal/rabbitmq"
 )
 
 type PaymentRepository struct {
@@ -30,32 +32,38 @@ func (r *PaymentRepository) IsEventProcessed(ctx context.Context, eventID string
 	return exists, err
 }
 
-func (r *PaymentRepository) MarkEventProcessed(
-	ctx context.Context,
-	eventID string,
-	eventType string,
-) error {
-	_, err := r.pool.Exec(
-		ctx,
-		`INSERT INTO processed_events (event_id, event_type) VALUES ($1, $2)
-		 ON CONFLICT (event_id) DO NOTHING`,
-		eventID,
-		eventType,
-	)
-
-	return err
+type OutboxEntry struct {
+	ID          string
+	Destination string
+	Topic       *string
+	RoutingKey  *string
+	MessageKey  string
+	EventType   string
+	Payload     []byte
 }
 
-func (r *PaymentRepository) CreatePayment(
+func (r *PaymentRepository) ProcessPaymentWithOutbox(
 	ctx context.Context,
+	paymentID string,
+	sourceEventID string,
 	orderID string,
 	amount string,
 	currency string,
 	status string,
+	kafkaTopic string,
+	kafkaEventType string,
+	kafkaOutboxID string,
+	kafkaPayload []byte,
+	rabbitRoutingKey string,
+	rabbitMessage rabbitmq.NotificationMessage,
 ) (string, error) {
-	paymentID := uuid.NewString()
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback(ctx)
 
-	_, err := r.pool.Exec(
+	_, err = tx.Exec(
 		ctx,
 		`INSERT INTO payments (id, order_id, amount, currency, status)
 		 VALUES ($1, $2, $3::numeric, $4, $5)`,
@@ -69,5 +77,65 @@ func (r *PaymentRepository) CreatePayment(
 		return "", err
 	}
 
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO processed_events (event_id, event_type) VALUES ($1, $2)`,
+		sourceEventID,
+		"inventory.reserved",
+	)
+	if err != nil {
+		return "", err
+	}
+
+	if err = r.insertOutbox(ctx, tx, OutboxEntry{
+		ID:          kafkaOutboxID,
+		Destination: "kafka",
+		Topic:       &kafkaTopic,
+		MessageKey:  orderID,
+		EventType:   kafkaEventType,
+		Payload:     kafkaPayload,
+	}); err != nil {
+		return "", err
+	}
+
+	rabbitPayload, err := json.Marshal(rabbitMessage)
+	if err != nil {
+		return "", err
+	}
+
+	if err = r.insertOutbox(ctx, tx, OutboxEntry{
+		ID:          rabbitMessage.MessageID,
+		Destination: "rabbitmq",
+		RoutingKey:  &rabbitRoutingKey,
+		MessageKey:  orderID,
+		EventType:   rabbitMessage.Type,
+		Payload:     rabbitPayload,
+	}); err != nil {
+		return "", err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return "", err
+	}
+
 	return paymentID, nil
+}
+
+func (r *PaymentRepository) insertOutbox(ctx context.Context, tx pgx.Tx, entry OutboxEntry) error {
+	_, err := tx.Exec(
+		ctx,
+		`INSERT INTO outbox_messages (
+			id, aggregate_id, event_type, destination, topic, routing_key, message_key, payload, status
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, 'PENDING')`,
+		entry.ID,
+		entry.MessageKey,
+		entry.EventType,
+		entry.Destination,
+		entry.Topic,
+		entry.RoutingKey,
+		entry.MessageKey,
+		string(entry.Payload),
+	)
+
+	return err
 }

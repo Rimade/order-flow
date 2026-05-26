@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"orderflow/payment-service/internal/config"
 	"orderflow/payment-service/internal/domain"
 	"orderflow/payment-service/internal/producer"
@@ -13,27 +14,17 @@ import (
 )
 
 type PaymentService struct {
-	repo            *repository.PaymentRepository
-	kafkaProducer   *producer.KafkaProducer
-	rabbitPublisher *rabbitmq.Publisher
-	cfg             config.Config
-	logger          *slog.Logger
+	repo   *repository.PaymentRepository
+	cfg    config.Config
+	logger *slog.Logger
 }
 
 func NewPaymentService(
 	repo *repository.PaymentRepository,
-	kafkaProducer *producer.KafkaProducer,
-	rabbitPublisher *rabbitmq.Publisher,
 	cfg config.Config,
 	logger *slog.Logger,
 ) *PaymentService {
-	return &PaymentService{
-		repo:            repo,
-		kafkaProducer:   kafkaProducer,
-		rabbitPublisher: rabbitPublisher,
-		cfg:             cfg,
-		logger:          logger,
-	}
+	return &PaymentService{repo: repo, cfg: cfg, logger: logger}
 }
 
 func (s *PaymentService) HandleInventoryReserved(ctx context.Context, payload []byte) error {
@@ -62,53 +53,104 @@ func (s *PaymentService) HandleInventoryReserved(ctx context.Context, payload []
 		status = "SUCCEEDED"
 	}
 
-	paymentID, err := s.repo.CreatePayment(
-		ctx,
+	if status == "SUCCEEDED" {
+		return s.processSucceeded(ctx, event)
+	}
+
+	return s.processFailed(ctx, event)
+}
+
+func (s *PaymentService) processSucceeded(
+	ctx context.Context,
+	event domain.InventoryReservedEvent,
+) error {
+	paymentID := uuid.NewString()
+	kafkaEvent := producer.BuildSucceededEvent(
+		paymentID,
 		event.Data.OrderID,
 		event.Data.TotalAmount,
 		event.Data.Currency,
-		status,
+	)
+
+	kafkaPayload, err := json.Marshal(kafkaEvent)
+	if err != nil {
+		return err
+	}
+
+	notification := rabbitmq.NotificationMessage{
+		MessageID: uuid.NewString(),
+		Type:      "payment.succeeded",
+		OrderID:   event.Data.OrderID,
+		PaymentID: paymentID,
+		Channel:   "email",
+		Amount:    event.Data.TotalAmount,
+		Currency:  event.Data.Currency,
+	}
+
+	_, err = s.repo.ProcessPaymentWithOutbox(
+		ctx,
+		paymentID,
+		event.EventID,
+		event.Data.OrderID,
+		event.Data.TotalAmount,
+		event.Data.Currency,
+		"SUCCEEDED",
+		s.cfg.KafkaPaymentSucceededTopic,
+		kafkaEvent.EventType,
+		kafkaEvent.EventID,
+		kafkaPayload,
+		"notification.payment.succeeded",
+		notification,
 	)
 	if err != nil {
 		return err
 	}
 
-	if err = s.repo.MarkEventProcessed(ctx, event.EventID, event.EventType); err != nil {
+	s.logger.Info("payment recorded (outbox)", "orderId", event.Data.OrderID, "paymentId", paymentID)
+	return nil
+}
+
+func (s *PaymentService) processFailed(
+	ctx context.Context,
+	event domain.InventoryReservedEvent,
+) error {
+	paymentID := uuid.NewString()
+	kafkaEvent := producer.BuildFailedEvent(paymentID, event.Data.OrderID, "payment_declined")
+	kafkaEvent.EventID = uuid.NewString()
+
+	kafkaPayload, err := json.Marshal(kafkaEvent)
+	if err != nil {
 		return err
 	}
 
-	if status == "SUCCEEDED" {
-		s.logger.Info("payment succeeded", "orderId", event.Data.OrderID, "paymentId", paymentID)
-
-		if err = s.kafkaProducer.PublishSucceeded(
-			ctx,
-			paymentID,
-			event.Data.OrderID,
-			event.Data.TotalAmount,
-			event.Data.Currency,
-		); err != nil {
-			return err
-		}
-
-		return s.rabbitPublisher.PublishPaymentSucceeded(
-			ctx,
-			event.Data.OrderID,
-			paymentID,
-			event.Data.TotalAmount,
-			event.Data.Currency,
-		)
+	notification := rabbitmq.NotificationMessage{
+		MessageID: uuid.NewString(),
+		Type:      "payment.failed",
+		OrderID:   event.Data.OrderID,
+		PaymentID: paymentID,
+		Channel:   "email",
+		Reason:    "payment_declined",
 	}
 
-	s.logger.Warn("payment failed", "orderId", event.Data.OrderID, "paymentId", paymentID)
-
-	if err = s.kafkaProducer.PublishFailed(ctx, paymentID, event.Data.OrderID, "payment_declined"); err != nil {
-		return err
-	}
-
-	return s.rabbitPublisher.PublishPaymentFailed(
+	createdPaymentID, err := s.repo.ProcessPaymentWithOutbox(
 		ctx,
-		event.Data.OrderID,
 		paymentID,
-		"payment_declined",
+		event.EventID,
+		event.Data.OrderID,
+		event.Data.TotalAmount,
+		event.Data.Currency,
+		"FAILED",
+		s.cfg.KafkaPaymentFailedTopic,
+		kafkaEvent.EventType,
+		kafkaEvent.EventID,
+		kafkaPayload,
+		"notification.payment.failed",
+		notification,
 	)
+	if err != nil {
+		return err
+	}
+
+	s.logger.Warn("payment failed (outbox)", "orderId", event.Data.OrderID, "paymentId", createdPaymentID)
+	return nil
 }

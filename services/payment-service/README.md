@@ -2,10 +2,18 @@
 
 **Stack:** Go + PostgreSQL + Kafka
 
-Сервис оплаты OrderFlow: слушает `inventory.reserved`, создаёт платёж, публикует `payment.succeeded` или `payment.failed`.
+Сервис оплаты OrderFlow: слушает `inventory.reserved`, создаёт платёж, публикует `payment.succeeded` / `payment.failed` и задачи уведомлений **через transactional outbox** (Kafka + RabbitMQ).
 
-**Порт:** `3004`  
+**Порт:** `3004`
 **БД:** `orderflow_payment`
+
+## Outbox
+
+Платёж, idempotency mark и две outbox-записи (Kafka + RabbitMQ) — в одной транзакции. Relay dispatch по полю `destination`.
+
+Env: `OUTBOX_POLL_INTERVAL_MS`, `OUTBOX_BATCH_SIZE`, `OUTBOX_MAX_RETRIES`.
+
+Подробнее: `docs/outbox-pattern.md`.
 
 ## Kafka
 

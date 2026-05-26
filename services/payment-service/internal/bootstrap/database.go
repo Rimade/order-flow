@@ -24,13 +24,15 @@ func ConnectDatabase(ctx context.Context, databaseURL string) (*pgxpool.Pool, er
 }
 
 func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
-	sqlBytes, err := os.ReadFile(filepath.Join("migrations", "001_init.sql"))
-	if err != nil {
-		return fmt.Errorf("read migration: %w", err)
-	}
+	for _, file := range []string{"001_init.sql", "002_outbox.sql"} {
+		sqlBytes, err := os.ReadFile(filepath.Join("migrations", file))
+		if err != nil {
+			return fmt.Errorf("read migration %s: %w", file, err)
+		}
 
-	if _, err = pool.Exec(ctx, string(sqlBytes)); err != nil {
-		return fmt.Errorf("apply migration: %w", err)
+		if _, err = pool.Exec(ctx, string(sqlBytes)); err != nil {
+			return fmt.Errorf("apply migration %s: %w", file, err)
+		}
 	}
 
 	return nil

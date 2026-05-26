@@ -14,6 +14,7 @@ import (
 	"orderflow/payment-service/internal/config"
 	"orderflow/payment-service/internal/consumer"
 	httpserver "orderflow/payment-service/internal/http"
+	"orderflow/payment-service/internal/outbox"
 	"orderflow/payment-service/internal/producer"
 	"orderflow/payment-service/internal/rabbitmq"
 	"orderflow/payment-service/internal/repository"
@@ -63,11 +64,17 @@ func main() {
 	}
 	defer rabbitPublisher.Close()
 
-	paymentService := service.NewPaymentService(repo, kafkaProducer, rabbitPublisher, cfg, logger)
+	paymentService := service.NewPaymentService(repo, cfg, logger)
 	inventoryConsumer := consumer.NewInventoryReservedConsumer(cfg, paymentService, logger)
 	defer inventoryConsumer.Close()
 
+	outboxRelay := outbox.NewRelay(pool, kafkaProducer, rabbitPublisher, cfg, logger)
+
 	httpServer := httpserver.NewServer(port, repo, logger)
+
+	go func() {
+		outboxRelay.Run(ctx)
+	}()
 
 	go func() {
 		if err = inventoryConsumer.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {

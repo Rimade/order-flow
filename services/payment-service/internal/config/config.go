@@ -19,6 +19,9 @@ type Config struct {
 	PaymentSimulateSuccess      bool
 	RabbitMQURL                 string
 	RabbitMQExchange            string
+	OutboxPollIntervalMs        int
+	OutboxBatchSize             int
+	OutboxMaxRetries            int
 }
 
 func Load() (Config, error) {
@@ -49,7 +52,24 @@ func Load() (Config, error) {
 		PaymentSimulateSuccess:      simulateSuccess,
 		RabbitMQURL:                 getenv("RABBITMQ_URL", "amqp://orderflow:orderflow@localhost:5672/"),
 		RabbitMQExchange:            getenv("RABBITMQ_EXCHANGE", "orderflow.notifications"),
+		OutboxPollIntervalMs:        getenvInt("OUTBOX_POLL_INTERVAL_MS", 1000),
+		OutboxBatchSize:             getenvInt("OUTBOX_BATCH_SIZE", 20),
+		OutboxMaxRetries:            getenvInt("OUTBOX_MAX_RETRIES", 5),
 	}, nil
+}
+
+func getenvInt(key string, fallback int) int {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return fallback
+	}
+
+	return parsed
 }
 
 func getenv(key, fallback string) string {
