@@ -1,9 +1,19 @@
 # Kafka
 
-Здесь будут храниться:
+## Топики (foundation)
 
-- описание базовых топиков;
-- скрипты инициализации;
-- заметки по consumer groups и naming conventions.
+| Topic           | Producer        | Consumers (planned)     |
+| --------------- | --------------- | ----------------------- |
+| `order.created` | `order-service` | `inventory-service`     |
 
-Базовый список топиков описан в `docs/project-blueprint.md`.
+## Локальная разработка
+
+Kafka поднимается через `infra/compose`. UI: http://localhost:8080
+
+После создания заказа проверь топик `order.created` в Kafka UI.
+
+## Naming conventions
+
+- события: `domain.action` (`order.created`, `payment.failed`);
+- ключ сообщения: id агрегата (`orderId`);
+- headers: `event-type`, `event-id`.
