@@ -2,10 +2,18 @@
 
 **Stack:** NestJS + Prisma + PostgreSQL + Kafka
 
-Сервис заказов OrderFlow: API для клиентов, публикация `order.created`, **замыкание saga** через Kafka consumers.
+Сервис заказов OrderFlow: API для клиентов, **transactional outbox** для `order.created`, **замыкание saga** через Kafka consumers.
 
-**Порт:** `3002`  
+**Порт:** `3002`
 **БД:** `orderflow_order`
+
+## Outbox
+
+Создание заказа и запись в `outbox_messages` — в одной Prisma-транзакции. Фоновый `OutboxRelayService` публикует в Kafka (`FOR UPDATE SKIP LOCKED`, retry, статус `FAILED`).
+
+Env: `OUTBOX_POLL_INTERVAL_MS`, `OUTBOX_BATCH_SIZE`, `OUTBOX_MAX_RETRIES`.
+
+Подробнее: `docs/outbox-pattern.md`.
 
 ## API
 
@@ -28,7 +36,7 @@
 
 ## Kafka
 
-**Producer:** `order.created`
+**Producer:** `order.created` (через outbox relay, не напрямую)
 
 **Consumer (saga):**
 

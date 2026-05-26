@@ -6,7 +6,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer, logLevel } from 'kafkajs';
-import { OrderCreatedEvent } from './order-created.event';
+export type KafkaPublishPayload = {
+  topic: string;
+  key: string;
+  eventType: string;
+  eventId: string;
+  payload: unknown;
+};
 
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
@@ -37,25 +43,19 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     await this.producer?.disconnect();
   }
 
-  async publishOrderCreated(event: OrderCreatedEvent) {
-    const topic = this.configService.getOrThrow<string>('KAFKA_ORDER_TOPIC');
-
+  async publishRaw(input: KafkaPublishPayload) {
     await this.producer.send({
-      topic,
+      topic: input.topic,
       messages: [
         {
-          key: event.data.orderId,
-          value: JSON.stringify(event),
+          key: input.key,
+          value: JSON.stringify(input.payload),
           headers: {
-            'event-type': event.eventType,
-            'event-id': event.eventId,
+            'event-type': input.eventType,
+            'event-id': input.eventId,
           },
         },
       ],
     });
-
-    this.logger.log(
-      `Published ${event.eventType} for order ${event.data.orderId}`,
-    );
   }
 }

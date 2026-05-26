@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { KafkaModule } from '../kafka/kafka.module';
+import { OutboxModule } from '../outbox/outbox.module';
 import { OrderLifecycleService } from './order-lifecycle.service';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 
 @Module({
-  imports: [KafkaModule],
+  imports: [OutboxModule],
   controllers: [OrdersController],
   providers: [OrdersService, OrderLifecycleService],
 })

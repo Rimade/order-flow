@@ -59,6 +59,18 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   KAFKA_PAYMENT_FAILED_TOPIC!: string;
+
+  @IsNumber()
+  @Min(100)
+  OUTBOX_POLL_INTERVAL_MS!: number;
+
+  @IsNumber()
+  @Min(1)
+  OUTBOX_BATCH_SIZE!: number;
+
+  @IsNumber()
+  @Min(1)
+  OUTBOX_MAX_RETRIES!: number;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
