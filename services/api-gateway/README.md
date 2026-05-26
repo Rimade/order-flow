@@ -10,6 +10,7 @@
 
 - JWT validation на edge (общий `JWT_ACCESS_SECRET` с `auth-service`; в проде позже можно перейти на JWKS/RS256);
 - distributed rate limiting (`@nestjs/throttler` + Redis, `THROTTLE_STORAGE=redis`);
+- OpenTelemetry → Jaeger (`OTEL_ENABLED=true`, см. `docs/observability.md`);
 - in-memory fallback для тестов (`THROTTLE_STORAGE=memory`);
 - `helmet` для security headers;
 - `x-request-id` для correlation id;
