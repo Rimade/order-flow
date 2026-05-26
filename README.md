@@ -153,7 +153,7 @@ docker compose up -d
 
 После старта:
 
-- Kafka UI: http://localhost:8080
+- Kafka UI: <http://localhost:8080>
 - PostgreSQL: `localhost:5432`
 - Redis: `localhost:6379`
 - Kafka: `localhost:9092`
@@ -175,6 +175,6 @@ docker compose up -d
 
 ## Ближайшие шаги
 
-- outbox pattern для надежной публикации Kafka-событий;
 - Redis distributed rate limit на gateway;
-- OpenTelemetry tracing между сервисами.
+- OpenTelemetry tracing между сервисами;
+- DLQ для failed outbox / consumer messages.

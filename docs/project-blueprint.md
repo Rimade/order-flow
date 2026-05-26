@@ -189,13 +189,13 @@
 
 ## Надежные паттерны
 
-Проект должен постепенно прийти к следующим практикам:
+Проект постепенно внедряет production-практики:
 
-- `Outbox pattern` для надежной публикации событий;
-- `Saga pattern` для распределенных бизнес-процессов;
-- `Idempotency` для платежей, уведомлений и повторных запросов;
-- `Dead Letter Queue` для неуспешной обработки сообщений;
-- `Retry with exponential backoff`;
+- **`Outbox pattern`** — реализован в `order-service`, `inventory-service`, `payment-service` (см. `docs/outbox-pattern.md`);
+- **`Saga pattern`** — реализован для flow заказа;
+- **`Idempotency`** — `processed_events` в consumer-сервисах;
+- `Dead Letter Queue` — в планах;
+- `Retry with exponential backoff` — outbox relay с лимитом retry;
 - health/readiness/liveness endpoints;
 - structured logging с correlation id / trace id.
 
@@ -205,6 +205,7 @@
 /
   docs/
     project-blueprint.md
+    outbox-pattern.md
   infra/
     docker/
     compose/
@@ -256,7 +257,7 @@
 
 ### Этап 5. Production patterns
 
-- outbox;
+- ~~outbox~~ (polling relay в order / inventory / payment);
 - idempotency keys;
 - DLQ;
 - компенсационные сценарии в saga;
@@ -284,8 +285,8 @@
 
 ## Ближайший следующий шаг
 
-Полный core saga (`order` -> `inventory` -> `payment` -> `notification`, статусы заказа в `order-service`) реализован. Следующий шаг:
+Полный core saga и **transactional outbox** (order → inventory → payment → notification) реализованы. Следующий шаг:
 
-- outbox pattern для Kafka producers;
 - Redis на gateway (distributed rate limit);
-- observability (OpenTelemetry, метрики, трассировка).
+- observability (OpenTelemetry, метрики, трассировка);
+- DLQ и компенсации saga.
