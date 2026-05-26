@@ -20,6 +20,9 @@ class EnvironmentVariables {
   @IsUrl({ require_tld: false })
   AUTH_SERVICE_URL!: string;
 
+  @IsUrl({ require_tld: false })
+  ORDER_SERVICE_URL!: string;
+
   @IsString()
   @IsNotEmpty()
   JWT_ACCESS_SECRET!: string;

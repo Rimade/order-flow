@@ -24,6 +24,9 @@
 | `POST /api/v1/auth/login`     | `auth-service`        |
 | `POST /api/v1/auth/refresh`   | `auth-service`        |
 | `GET /api/v1/auth/me`         | `auth-service` (JWT)  |
+| `POST /api/v1/orders`         | `order-service` (JWT) |
+| `GET /api/v1/orders`          | `order-service` (JWT) |
+| `GET /api/v1/orders/:id`      | `order-service` (JWT) |
 | `GET /health`                 | локальный health      |
 
 Публичные auth-эндпоинты не требуют JWT. `GET /api/v1/auth/me` требует `Authorization: Bearer <accessToken>`.
