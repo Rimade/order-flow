@@ -24,7 +24,7 @@ type(scope): short summary
 
 Примеры:
 
-- `docs(project): define initial commercehub architecture`
+- `docs(project): define initial orderflow architecture`
 - `chore(repo): initialize git standards and ignore rules`
 - `feat(order): create order creation endpoint`
 - `feat(inventory): reserve stock on order created`

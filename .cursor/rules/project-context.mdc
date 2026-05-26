@@ -1,9 +1,9 @@
 ---
-description: Core project context for the CommerceHub backend
+description: Core project context for the OrderFlow backend
 alwaysApply: true
 ---
 
-# CommerceHub Project Context
+# OrderFlow Project Context
 
 - Отвечай пользователю на русском.
 - Это учебный production-like backend-проект на mixed stack: `NestJS` + `Go`.

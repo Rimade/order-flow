@@ -1,4 +1,4 @@
-# Kafka Microservices Redis Blueprint
+# OrderFlow Blueprint
 
 ## Зачем этот проект
 
@@ -13,7 +13,7 @@
 
 ## Домен проекта
 
-Проект: **CommerceHub**
+Проект: **OrderFlow**
 
 Домен: backend-система для оформления и обработки заказов в интернет-магазине.
 
