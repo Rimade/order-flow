@@ -9,7 +9,8 @@
 ## Production-практики в этом сервисе
 
 - JWT validation на edge (общий `JWT_ACCESS_SECRET` с `auth-service`; в проде позже можно перейти на JWKS/RS256);
-- rate limiting (`@nestjs/throttler`);
+- distributed rate limiting (`@nestjs/throttler` + Redis, `THROTTLE_STORAGE=redis`);
+- in-memory fallback для тестов (`THROTTLE_STORAGE=memory`);
 - `helmet` для security headers;
 - `x-request-id` для correlation id;
 - проброс `x-user-id` / `x-user-email` во внутренние сервисы после валидации JWT;
@@ -40,11 +41,24 @@
 cp .env.example .env
 ```
 
-3. Запуск:
+1. Redis из `infra/compose` (для `THROTTLE_STORAGE=redis`).
+
+2. Запуск:
 
 ```bash
 npm run start:dev
 ```
+
+## Rate limit
+
+| Env | Описание |
+| --- | -------- |
+| `THROTTLE_TTL_MS` | окно в мс (по умолчанию 60000) |
+| `THROTTLE_LIMIT` | запросов на IP за окно |
+| `THROTTLE_STORAGE` | `redis` (distributed) или `memory` |
+| `REDIS_URL` | обязателен при `redis`, например `redis://localhost:6379` |
+
+`/health` не лимитируется. Ключ — IP клиента (учитывается `X-Forwarded-For` за reverse proxy).
 
 ## Пример через gateway
 

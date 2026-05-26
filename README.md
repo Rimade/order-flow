@@ -175,6 +175,6 @@ docker compose up -d
 
 ## Ближайшие шаги
 
-- Redis distributed rate limit на gateway;
 - OpenTelemetry tracing между сервисами;
-- DLQ для failed outbox / consumer messages.
+- DLQ для failed outbox / consumer messages;
+- компенсации saga.

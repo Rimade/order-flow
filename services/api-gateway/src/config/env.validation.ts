@@ -7,6 +7,7 @@ import {
   IsUrl,
   Min,
   validateSync,
+  ValidateIf,
 } from 'class-validator';
 
 class EnvironmentVariables {
@@ -42,6 +43,14 @@ class EnvironmentVariables {
   @IsNumber()
   @Min(1000)
   HTTP_CLIENT_TIMEOUT_MS!: number;
+
+  @IsIn(['redis', 'memory'])
+  THROTTLE_STORAGE!: 'redis' | 'memory';
+
+  @ValidateIf((env: EnvironmentVariables) => env.THROTTLE_STORAGE === 'redis')
+  @IsString()
+  @IsNotEmpty()
+  REDIS_URL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

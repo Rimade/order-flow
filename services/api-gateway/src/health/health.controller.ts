@@ -8,14 +8,18 @@ import {
   HealthIndicatorResult,
 } from '@nestjs/terminus';
 import { firstValueFrom } from 'rxjs';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../common/decorators/public.decorator';
+import { RedisHealthIndicator } from './redis.health';
 
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly redisHealth: RedisHealthIndicator,
   ) {}
 
   @Public()
@@ -28,6 +32,7 @@ export class HealthController {
 
     return this.health.check([
       () => this.getGatewayHealth(),
+      () => this.redisHealth.isHealthy(),
       () => this.pingAuthService(authServiceUrl),
     ]);
   }

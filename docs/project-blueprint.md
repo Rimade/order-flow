@@ -180,7 +180,7 @@
 ## Redis Use Cases
 
 - кэширование каталога и карточек товара;
-- rate limiting на gateway;
+- ~~rate limiting на gateway~~ (Redis + `@nestjs/throttler` в `api-gateway`);
 - хранение idempotency keys для платежей и внешних запросов;
 - distributed locks там, где нужна защита от гонок;
 - short-lived state для саг и фоновых задач.
@@ -285,8 +285,7 @@
 
 ## Ближайший следующий шаг
 
-Полный core saga и **transactional outbox** (order → inventory → payment → notification) реализованы. Следующий шаг:
+Полный core saga, **transactional outbox** и **Redis rate limit** на gateway реализованы. Следующий шаг:
 
-- Redis на gateway (distributed rate limit);
 - observability (OpenTelemetry, метрики, трассировка);
 - DLQ и компенсации saga.

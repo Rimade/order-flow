@@ -10,6 +10,10 @@ async function bootstrap() {
   });
 
   app.use(helmet());
+  const httpAdapter = app.getHttpAdapter().getInstance();
+  if (typeof httpAdapter.set === 'function') {
+    httpAdapter.set('trust proxy', 1);
+  }
   app.enableShutdownHooks();
 
   app.setGlobalPrefix('api/v1', {
