@@ -175,6 +175,8 @@ docker compose up -d
 
 ## Ближайшие шаги
 
-- OpenTelemetry tracing между сервисами;
+- Prometheus + Grafana;
 - DLQ для failed outbox / consumer messages;
 - компенсации saga.
+
+Трассировка: `docs/observability.md`, Jaeger UI http://localhost:16686
