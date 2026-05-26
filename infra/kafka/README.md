@@ -2,9 +2,13 @@
 
 ## Топики (foundation)
 
-| Topic           | Producer        | Consumers (planned)     |
-| --------------- | --------------- | ----------------------- |
-| `order.created` | `order-service` | `inventory-service`     |
+| Topic                 | Producer            | Consumers               |
+| --------------------- | ------------------- | ----------------------- |
+| `order.created`       | `order-service`     | `inventory-service`     |
+| `inventory.reserved`  | `inventory-service` | `payment-service`       |
+| `inventory.rejected`  | `inventory-service` | — (planned: order)      |
+| `payment.succeeded`   | `payment-service`   | — (planned: order)      |
+| `payment.failed`      | `payment-service`   | — (planned: order)      |
 
 ## Локальная разработка
 
