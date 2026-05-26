@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { OutboxStatus } from '../../generated/prisma/client';
 import { KafkaProducerService } from '../kafka/kafka-producer.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { OutboxDlqService } from './outbox-dlq.service';
 
 type PendingOutboxRow = {
   id: string;
@@ -27,6 +28,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly outboxDlq: OutboxDlqService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -62,6 +64,12 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
         'OUTBOX_MAX_RETRIES',
         5,
       );
+
+      const deadLetters: Array<{
+        message: PendingOutboxRow;
+        lastError: string;
+        retryCount: number;
+      }> = [];
 
       await this.prisma.$transaction(async (tx) => {
         const messages = await tx.$queryRaw<PendingOutboxRow[]>`
@@ -115,9 +123,29 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
               `Outbox dispatch failed for ${message.id} (retry ${nextRetryCount}/${maxRetries})`,
               errorMessage,
             );
+
+            if (failed) {
+              deadLetters.push({
+                message,
+                lastError: errorMessage,
+                retryCount: nextRetryCount,
+              });
+            }
           }
         }
       });
+
+      for (const deadLetter of deadLetters) {
+        await this.outboxDlq.publish({
+          id: deadLetter.message.id,
+          topic: deadLetter.message.topic,
+          messageKey: deadLetter.message.message_key,
+          eventType: deadLetter.message.event_type,
+          payload: deadLetter.message.payload,
+          retryCount: deadLetter.retryCount,
+          lastError: deadLetter.lastError,
+        });
+      }
     } finally {
       this.dispatching = false;
     }

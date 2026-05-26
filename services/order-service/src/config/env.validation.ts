@@ -71,6 +71,10 @@ class EnvironmentVariables {
   @IsNumber()
   @Min(1)
   OUTBOX_MAX_RETRIES!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  OUTBOX_DLQ_TOPIC!: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
