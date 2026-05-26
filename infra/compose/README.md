@@ -10,6 +10,7 @@
 | redis     | 6379              | кэш и ephemeral state   |
 | kafka     | 9092              | event bus               |
 | kafka-ui  | 8080              | просмотр топиков        |
+| rabbitmq  | 5672 / 15672      | task queue / UI         |
 
 ## Запуск
 
@@ -36,6 +37,8 @@ docker compose down
 - PostgreSQL: `postgresql://orderflow:orderflow@localhost:5432/orderflow`
 - Redis: `redis://localhost:6379`
 - Kafka: `localhost:9092`
+- RabbitMQ: `amqp://orderflow:orderflow@localhost:5672/`
+- RabbitMQ UI: http://localhost:15672
 
 При первом запуске Postgres создает отдельные БД для сервисов, начиная с `orderflow_auth` для `auth-service`.
 
