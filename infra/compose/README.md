@@ -2,11 +2,13 @@
 
 Локальная инфраструктура для разработки `OrderFlow`.
 
+Полная инструкция «начало/конец дня», API-тесты и troubleshooting: [docs/local-dev-routine.md](../../docs/local-dev-routine.md).
+
 ## Сервисы
 
 | Сервис    | Порт по умолчанию | Назначение              |
 | --------- | ----------------- | ----------------------- |
-| postgres  | 5432              | основная БД             |
+| postgres  | 5433 (host)       | основная БД; 5433 чтобы не конфликтовать с локальным Postgres на 5432 |
 | redis     | 6379              | кэш и ephemeral state   |
 | kafka     | 9092              | event bus               |
 | kafka-ui  | 8080              | просмотр топиков        |
@@ -51,7 +53,7 @@ docker compose down
 
 ## Подключение из сервисов
 
-- PostgreSQL: `postgresql://orderflow:orderflow@localhost:5432/orderflow`
+- PostgreSQL: `postgresql://orderflow:orderflow@localhost:5433/orderflow`
 - Redis: `redis://localhost:6379`
 - Kafka: `localhost:9092`
 - RabbitMQ: `amqp://orderflow:orderflow@localhost:5672/`

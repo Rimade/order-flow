@@ -154,11 +154,13 @@ docker compose up -d
 После старта:
 
 - Kafka UI: <http://localhost:8080>
-- PostgreSQL: `localhost:5432`
+- PostgreSQL: `localhost:5433` (Docker; см. [docs/local-dev-routine.md](docs/local-dev-routine.md))
 - Redis: `localhost:6379`
 - Kafka: `localhost:9092`
 
 Подробнее: `infra/compose/README.md`.
+
+**Ежедневный запуск/остановка:** [docs/local-dev-routine.md](docs/local-dev-routine.md) (чеклисты, порты, скрипты `scripts/dev-*.ps1`).
 
 ## Сервисы
 
@@ -179,5 +181,6 @@ docker compose up -d
 - бизнес-метрики saga.
 
 Observability:
-- Трассировка: `docs/observability.md`, Jaeger http://localhost:16686
-- Метрики: `docs/metrics.md`, Grafana http://localhost:3100
+
+- Трассировка: `docs/observability.md`, Jaeger <http://localhost:16686>
+- Метрики: `docs/metrics.md`, Grafana <http://localhost:3100>
