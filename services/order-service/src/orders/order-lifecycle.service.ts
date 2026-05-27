@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus } from '../../generated/prisma/client';
+import { OrderStatus } from '@prisma/client';
 import {
   InventoryRejectedEvent,
   InventoryReservedEvent,

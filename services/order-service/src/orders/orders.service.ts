@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { Prisma } from '../../generated/prisma/client';
+import { Prisma } from '@prisma/client';
 import { OrderCreatedEvent } from '../kafka/order-created.event';
 import { OutboxService } from '../outbox/outbox.service';
 import { PrismaService } from '../prisma/prisma.service';

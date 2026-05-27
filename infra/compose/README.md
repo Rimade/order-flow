@@ -17,11 +17,25 @@
 
 ## Запуск
 
+### Минимум для первого раза (рекомендуется)
+
+Только БД, Kafka, Redis, RabbitMQ и Kafka UI — **без** Grafana/Prometheus/Jaeger (меньше скачиваний, быстрее старт):
+
 ```bash
 cd infra/compose
 cp .env.example .env
 docker compose up -d
 ```
+
+Если раньше упало на Grafana — снова выполни команду выше (observability теперь опциональна).
+
+### Полный стек (метрики + трейсы)
+
+```bash
+docker compose --profile observability up -d
+```
+
+При медленном интернете образы могут качаться долго; при таймауте повтори команду или используй только минимальный запуск.
 
 Проверка статуса:
 
@@ -41,11 +55,11 @@ docker compose down
 - Redis: `redis://localhost:6379`
 - Kafka: `localhost:9092`
 - RabbitMQ: `amqp://orderflow:orderflow@localhost:5672/`
-- RabbitMQ UI: http://localhost:15672
-- Jaeger UI: http://localhost:16686
-- OTLP HTTP: http://localhost:4318/v1/traces
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3100
+- RabbitMQ UI: <http://localhost:15672>
+- Jaeger UI: <http://localhost:16686>
+- OTLP HTTP: <http://localhost:4318/v1/traces>
+- Prometheus: <http://localhost:9090>
+- Grafana: <http://localhost:3100>
 
 При первом запуске Postgres создает отдельные БД для сервисов, начиная с `orderflow_auth` для `auth-service`.
 

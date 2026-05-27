@@ -5,7 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OutboxStatus } from '../../generated/prisma/client';
+import { OutboxStatus } from '@prisma/client';
 import { KafkaProducerService } from '../kafka/kafka-producer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { OutboxDlqService } from './outbox-dlq.service';
