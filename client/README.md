@@ -1,6 +1,6 @@
 # OrderFlow Client
 
-Фронтенд monorepo: **shell** (host) + микрофронтенды **mfe-auth**, **mfe-orders** + UI kit `@orderflow/ui`.
+Фронтенд monorepo: **shell** (host) + микрофронтенды **mfe-auth**, **mfe-orders**, **mfe-catalog** + UI kit `@orderflow/ui`.
 
 ## Структура
 
@@ -10,16 +10,17 @@ client/
     shell/           # :4000 — роутер, layout, Module Federation host
     mfe-auth/        # :4101 — login, register
     mfe-orders/      # :4102 — список и деталь заказа
+    mfe-catalog/     # :4103 — каталог и оформление
   packages/
-    ui/              # Button, Input, Card, OrderStatusBadge, …
-    api-client/      # fetch → api-gateway
+    ui/              # Button, Input, Card, Dialog, Select, …
+    api-client/      # fetch → api-gateway (типы из OpenAPI)
     auth/            # JWT в sessionStorage
     config/          # VITE_API_URL
 ```
 
 ## Быстрый старт
 
-1. Подними backend (см. [backend/docs/local-dev-routine.md](../backend/docs/local-dev-routine.md)): Docker + auth + gateway + order + inventory + payment.
+1. Подними backend (см. [backend/docs/local-dev-routine.md](../backend/docs/local-dev-routine.md)): Docker + auth + gateway + order + **catalog** + inventory + payment.
 
 2. Скопируй env и установи зависимости:
 
@@ -32,7 +33,9 @@ pnpm dev
 
 1. Открой **<http://localhost:4000>** — регистрация → заказ (sku-1) → деталь с polling до `CONFIRMED`.
 
-`pnpm dev` через Turborepo поднимает **shell**, **mfe-auth** и **mfe-orders** параллельно.
+`pnpm dev` через Turborepo поднимает **shell** и все remotes (:4101–4103) параллельно.
+
+Флаг `VITE_CATALOG_ENABLED=false` скрывает каталог в меню и маршрутах.
 
 ## API
 
@@ -50,6 +53,7 @@ VITE_API_URL=http://localhost:3000
 ## Сборка
 
 ```powershell
+pnpm codegen   # типы из backend/packages/contracts/openapi/
 pnpm build
 ```
 
@@ -64,12 +68,12 @@ pnpm exec playwright install chromium
 pnpm e2e
 ```
 
-Playwright сам поднимет `pnpm dev` (shell + remotes), если они ещё не запущены.  
+Playwright сам поднимет `pnpm dev` (shell + remotes), если они ещё не запущены.
 UI-режим: `pnpm e2e:ui`. Отчёт: `pnpm e2e:report`.
 
 ## Production-like static (nginx + Docker)
 
-Собранный shell и remotes на **http://localhost:8080** (один origin для Module Federation):
+Собранный shell и remotes на **<http://localhost:8080>** (один origin для Module Federation):
 
 ```powershell
 # backend на :3000 должен быть запущен

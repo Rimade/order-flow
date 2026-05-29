@@ -1,4 +1,5 @@
 import { isAuthenticated } from '@orderflow/auth';
+import { features } from '@orderflow/config';
 import { Alert, AlertDescription, Spinner } from '@orderflow/ui';
 import React, { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
@@ -87,30 +88,34 @@ export function App() {
 					)
 				}
 			/>
-			<Route
-				path="/catalog"
-				element={
-					<ProtectedRoute>
-						<ShellLayout>
-							<LazyRemote>
-								<CatalogListPage />
-							</LazyRemote>
-						</ShellLayout>
-					</ProtectedRoute>
-				}
-			/>
-			<Route
-				path="/catalog/:sku"
-				element={
-					<ProtectedRoute>
-						<ShellLayout>
-							<LazyRemote>
-								<ProductDetailPage />
-							</LazyRemote>
-						</ShellLayout>
-					</ProtectedRoute>
-				}
-			/>
+			{features.catalog ? (
+				<>
+					<Route
+						path="/catalog"
+						element={
+							<ProtectedRoute>
+								<ShellLayout>
+									<LazyRemote>
+										<CatalogListPage />
+									</LazyRemote>
+								</ShellLayout>
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/catalog/:sku"
+						element={
+							<ProtectedRoute>
+								<ShellLayout>
+									<LazyRemote>
+										<ProductDetailPage />
+									</LazyRemote>
+								</ShellLayout>
+							</ProtectedRoute>
+						}
+					/>
+				</>
+			) : null}
 			<Route
 				path="/orders"
 				element={

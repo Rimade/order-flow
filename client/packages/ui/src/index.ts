@@ -6,12 +6,23 @@ export { Card, CardContent, CardDescription, CardHeader, CardTitle } from './com
 export { Badge, type BadgeProps } from './components/badge';
 export { Alert, AlertDescription, AlertTitle, type AlertProps } from './components/alert';
 export { Spinner } from './components/spinner';
+export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/table';
 export {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from './components/table';
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from './components/dialog';
+export {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from './components/select';
 export { OrderStatusBadge, type OrderStatus } from './patterns/order-status-badge';

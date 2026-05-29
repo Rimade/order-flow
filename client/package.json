@@ -1,21 +1,22 @@
 {
-  "name": "orderflow-client",
-  "private": true,
-  "packageManager": "pnpm@9.15.0",
-  "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui",
-    "e2e:report": "playwright show-report",
-    "build:static": "powershell -File ./scripts/build-static.ps1",
-    "docker:up": "docker compose -f infra/compose/docker-compose.yml up --build",
-    "docker:down": "docker compose -f infra/compose/docker-compose.yml down"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.51.0",
-    "turbo": "^2.3.0",
-    "typescript": "^5.7.3"
-  }
+	"name": "orderflow-client",
+	"private": true,
+	"packageManager": "pnpm@9.15.0",
+	"scripts": {
+		"dev": "turbo run dev",
+		"build": "turbo run build",
+		"codegen": "pnpm --filter @orderflow/api-client codegen",
+		"lint": "turbo run lint",
+		"e2e": "playwright test",
+		"e2e:ui": "playwright test --ui",
+		"e2e:report": "playwright show-report",
+		"build:static": "powershell -File ./scripts/build-static.ps1",
+		"docker:up": "docker compose -f infra/compose/docker-compose.yml up --build",
+		"docker:down": "docker compose -f infra/compose/docker-compose.yml down"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.51.0",
+		"turbo": "^2.3.0",
+		"typescript": "^5.7.3"
+	}
 }

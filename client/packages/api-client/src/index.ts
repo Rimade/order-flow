@@ -1,6 +1,7 @@
 import { clearAuthSession, getAuthHeaders } from '@orderflow/auth';
-import { apiBaseUrl } from '@orderflow/config';
 import type { AuthTokens } from '@orderflow/auth';
+import { apiBaseUrl } from '@orderflow/config';
+import type { components } from './generated/schema';
 
 export class ApiError extends Error {
 	constructor(
@@ -66,45 +67,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 	return data as T;
 }
 
-export type OrderStatus = 'PENDING' | 'PAYMENT_PENDING' | 'CONFIRMED' | 'CANCELLED' | 'FAILED';
-
-export type OrderItem = {
-	id: string;
-	productId: string;
-	productName: string;
-	quantity: number;
-	unitPrice: string;
-};
-
-export type Order = {
-	id: string;
-	userId: string;
-	status: OrderStatus;
-	totalAmount: string;
-	currency: string;
-	createdAt: string;
-	updatedAt: string;
-	items: OrderItem[];
-};
-
-export type Product = {
-  id: string;
-  sku: string;
-  name: string;
-  description: string | null;
-  price: string;
-  currency: string;
-  category: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type CreateOrderItemInput = {
-	productId: string;
-	productName: string;
-	quantity: number;
-	unitPrice: number;
-};
+export type OrderStatus = components['schemas']['OrderStatus'];
+export type OrderItem = components['schemas']['OrderItem'];
+export type Order = components['schemas']['Order'];
+export type Product = components['schemas']['Product'];
+export type CreateOrderItemInput = components['schemas']['CreateOrderItemInput'];
 
 export const api = {
 	auth: {
@@ -124,15 +91,14 @@ export const api = {
 				auth: true,
 			}),
 	},
-  catalog: {
-    listProducts: () =>
-      request<Product[]>('/api/v1/catalog/products', { method: 'GET' }),
-    getProduct: (sku: string) =>
-      request<Product>(`/api/v1/catalog/products/${encodeURIComponent(sku)}`, {
-        method: 'GET',
-      }),
-  },
-  orders: {
+	catalog: {
+		listProducts: () => request<Product[]>('/api/v1/catalog/products', { method: 'GET' }),
+		getProduct: (sku: string) =>
+			request<Product>(`/api/v1/catalog/products/${encodeURIComponent(sku)}`, {
+				method: 'GET',
+			}),
+	},
+	orders: {
 		list: () => request<Order[]>('/api/v1/orders', { method: 'GET', auth: true }),
 		get: (id: string) => request<Order>(`/api/v1/orders/${id}`, { method: 'GET', auth: true }),
 		create: (items: CreateOrderItemInput[], currency = 'USD') =>

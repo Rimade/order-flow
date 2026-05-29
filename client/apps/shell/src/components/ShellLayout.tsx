@@ -1,4 +1,5 @@
 import { clearAuthSession, getStoredUser } from '@orderflow/auth';
+import { features } from '@orderflow/config';
 import { Button } from '@orderflow/ui';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,9 +25,11 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 						OrderFlow
 					</Link>
 					<nav className="flex items-center gap-4 text-sm">
-						<Link to="/catalog" className="hover:text-of-primary">
-							Каталог
-						</Link>
+						{features.catalog ? (
+							<Link to="/catalog" className="hover:text-of-primary">
+								Каталог
+							</Link>
+						) : null}
 						<Link to="/orders" className="hover:text-of-primary">
 							Заказы
 						</Link>
