@@ -56,9 +56,18 @@ npm run start:dev
 Gateway: <http://localhost:3000>
 Kafka UI: <http://localhost:8080>
 
-## Клиент (в разработке)
+## Клиент
 
-Скелет: [client/](client/). Следующий шаг — Vite + Module Federation + login/orders.
+Фаза 1: shell + mfe-auth + mfe-orders — см. [client/README.md](client/README.md).
+
+```powershell
+cd client
+copy .env.example .env
+pnpm install
+pnpm dev
+```
+
+Открыть: <http://localhost:4000>
 
 ## Event flow
 

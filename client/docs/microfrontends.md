@@ -4,7 +4,7 @@
 
 **Связанные документы:**
 
-- [project-blueprint.md](./project-blueprint.md) — общая архитектура backend
+- [backend/docs/project-blueprint.md](../../backend/docs/project-blueprint.md) — архитектура backend
 - [ui-kit.md](./ui-kit.md) — собственная дизайн-система `@orderflow/ui`
 - [backend/docs/local-dev-routine.md](../../backend/docs/local-dev-routine.md) — запуск backend локально
 
@@ -121,9 +121,9 @@ flowchart TB
 
 | Remote | Dev port (пример) | Маршруты | API (gateway) | Статус |
 |--------|-------------------|----------|---------------|--------|
-| **shell** | 4000 | layout, `*`, error boundaries | — | план |
-| **mfe-auth** | 4101 | `/login`, `/register` | `POST /api/v1/auth/*` | план |
-| **mfe-orders** | 4102 | `/orders`, `/orders/:id` | `GET/POST /api/v1/orders` | план |
+| **shell** | 4000 | layout, `*`, error boundaries | — | готово |
+| **mfe-auth** | 4101 | `/login`, `/register` | `POST /api/v1/auth/*` | готово |
+| **mfe-orders** | 4102 | `/orders`, `/orders/:id` | `GET/POST /api/v1/orders` | готово |
 | **mfe-catalog** | 4103 | `/`, `/products/:id` | catalog API | ждёт backend |
 
 ### Shell отвечает за
@@ -254,11 +254,11 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 
 ### Фаза 1 — Core UI + 2 remotes
 
-1. Monorepo: `apps/shell`, `mfe-auth`, `mfe-orders`, `packages/ui`, `api-client`, `auth`
-2. UI kit: Button, Input, Label, Card, Badge, Alert, Spinner (минимум)
-3. Login / register → token
-4. Список заказов, создание (`sku-1`), деталь с polling до `CONFIRMED`
-5. `turbo dev` — один скрипт поднимает shell + remotes
+1. [x] Monorepo: `apps/shell`, `mfe-auth`, `mfe-orders`, `packages/ui`, `api-client`, `auth`
+2. [x] UI kit: Button, Input, Label, Card, Badge, Alert, Spinner, OrderStatusBadge
+3. [x] Login / register → token
+4. [x] Список заказов, создание (`sku-1`), деталь с polling до `CONFIRMED`
+5. [x] `pnpm dev` — turbo поднимает shell + remotes
 
 **Definition of Done:** заказ до `CONFIRMED` только из браузера, без Postman.
 
