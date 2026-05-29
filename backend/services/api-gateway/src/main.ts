@@ -14,6 +14,14 @@ async function bootstrap() {
   });
 
   app.use(helmet());
+  app.enableCors({
+    origin: [
+      'http://localhost:4000',
+      'http://localhost:4101',
+      'http://localhost:4102',
+    ],
+    credentials: true,
+  });
   const httpAdapter = app.getHttpAdapter().getInstance();
   if (typeof httpAdapter.set === 'function') {
     httpAdapter.set('trust proxy', 1);
