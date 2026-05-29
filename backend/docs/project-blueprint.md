@@ -302,9 +302,10 @@ Frontend (текущий фокус):
 2. ~~Фаза 1~~ — Module Federation + login/orders UI;
 3. ~~Фаза 3 (частично)~~ — Playwright E2E, nginx static (`client/infra`);
 4. ~~Фаза 2~~ — `catalog-service` + `mfe-catalog` (read API + UI);
-5. OpenAPI codegen, Redis cache store для catalog (опционально).
+5. ~~OpenAPI codegen~~ — `backend/packages/contracts/openapi/`, `pnpm codegen` в `client`;
+6. ~~Dialog/Select, feature flags, E2E каталог~~ — см. [microfrontends.md](../../client/docs/microfrontends.md).
 
 Backend (параллельно по желанию):
 
 - replay tooling для `dlq.outbox`;
-- `catalog-service` (разблокирует `mfe-catalog`).
+- catalog: `CACHE_STORE=redis` в `.env` (по умолчанию `memory`).

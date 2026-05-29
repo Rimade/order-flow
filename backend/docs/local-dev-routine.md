@@ -145,7 +145,7 @@ docker compose ps
 | `auth` | `backend/services/auth-service` | `npm run start:dev` |
 | `gateway` | `backend/services/api-gateway` | `npm run start:dev` |
 | `order` | `backend/services/order-service` | `npm run start:dev` |
-| `catalog` | `backend/services/catalog-service` | `npm run start:dev` |
+| `catalog` | `backend/services/catalog-service` | `npm run start:dev` (в `.env`: `CACHE_STORE=memory` или `redis` + `REDIS_URL`) |
 | `inventory` | `backend/services/inventory-service` | `go run ./cmd/server` |
 | `payment` | `backend/services/payment-service` | `go run ./cmd/server` |
 | `notification` | `backend/services/notification-service` | `go run ./cmd/server` |

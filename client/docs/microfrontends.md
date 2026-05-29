@@ -267,14 +267,14 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 1. [x] `catalog-service` — read API, Prisma, in-memory cache
 2. [x] `mfe-catalog` — список (Table), карточка товара
 3. [x] «Оформить» → заказ с SKU из каталога
-4. [ ] Dialog, Select (расширение UI kit)
+4. [x] Dialog, Select (расширение UI kit)
 
 ### Фаза 3 — Production-like
 
-1. [x] Playwright E2E — `client/e2e/order-saga.spec.ts` (`pnpm e2e`)
+1. [x] Playwright E2E — `order-saga.spec.ts`, `catalog-order.spec.ts` (`pnpm e2e`)
 2. [x] Docker/nginx: статика shell + remotes — `client/infra/`, `pnpm docker:up` → :8080
-3. OpenAPI codegen
-4. Feature flags (mock): `catalog.enabled`
+3. [x] OpenAPI codegen — `backend/packages/contracts/openapi/`, `pnpm codegen`
+4. [x] Feature flags (mock): `VITE_CATALOG_ENABLED` → `features.catalog`
 5. (Опционально) Rspack вместо Vite для сравнения скорости сборки
 
 ---
@@ -329,7 +329,8 @@ Remotes публикуются как статика; shell в runtime знае�
 - [ ] Backend: gateway + auth + order + inventory + payment ([local-dev-routine.md](../../backend/docs/local-dev-routine.md))
 - [ ] `JWT_ACCESS_SECRET` совпадает в auth и gateway
 - [ ] Postgres **5433** в `.env` сервисов
-- [ ] `cd client && pnpm dev` — shell :4000, remotes :4101/:4102
+- [ ] `cd client && pnpm dev` — shell :4000, remotes :4101–4103
 - [ ] В браузере: login → заказ sku-1 → **CONFIRMED**
+- [ ] (опционально) каталог → оформить → заказ → **CONFIRMED**
 
-**Следующий шаг:** фаза 2 (`catalog-service` + `mfe-catalog`) или OpenAPI codegen / feature flags.
+**Следующий шаг:** CI e2e с compose, Vitest для UI, Rspack (опционально).

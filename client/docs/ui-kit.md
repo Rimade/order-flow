@@ -316,10 +316,15 @@ pnpm ui:add badge
 
 ---
 
-## 15. Следующий шаг
+## 15. Компоненты (актуально)
 
-1. Утвердить токены (светлая тема) в этом документе.
-2. При старте кода — создать `packages/ui` с `Button`, `Input`, `Card`, `Badge`, `OrderStatusBadge`.
-3. Подключить в первом remote (`mfe-auth`).
+Реализованы: `Button`, `Input`, `Label`, `Card`, `Badge`, `Alert`, `Spinner`, `Table`, `Dialog`, `Select`, `OrderStatusBadge`.
+
+`Dialog` + `Select` используются в `mfe-catalog` (оформление с выбором количества).
+
+## 16. Следующий шаг
+
+- Vitest для UI, Storybook (опционально).
+- Логотип и favicon в shell.
 
 Вопросы и изменения API компонентов — через PR + короткая запись в CHANGELOG пакета `ui`.
