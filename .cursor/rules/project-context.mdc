@@ -6,7 +6,7 @@ alwaysApply: true
 # OrderFlow Project Context
 
 - Отвечай пользователю на русском.
-- Это учебный production-like backend-проект на mixed stack: `NestJS` + `Go`.
+- Это учебный production-like проект: backend (`backend/`) на `NestJS` + `Go`, клиент (`client/`) — микрофронтенды.
 - Домен проекта: e-commerce / order processing.
 - Главные технологии: `Kafka`, `Redis`, `PostgreSQL`, `Docker Compose`, `OpenTelemetry`, `Prometheus`, `Grafana`, `Jaeger`.
 - `NestJS` использовать для gateway и business/API-сервисов.
@@ -14,6 +14,7 @@ alwaysApply: true
 - Каждый сервис владеет своими данными; общая БД для всех сервисов недопустима.
 - Межсервисные асинхронные коммуникации строить через `Kafka`.
 - `Redis` использовать для кэша, idempotency, rate limit, locks и short-lived state.
-- При создании новой архитектуры, сервиса или интеграции сверяться с `docs/project-blueprint.md` и обновлять его при существенных изменениях.
+- Backend: `backend/services/`, infra: `backend/infra/compose/`. Клиент: `client/apps/`, UI: `client/packages/ui`.
+- Backend-архитектура: `backend/docs/project-blueprint.md`. Клиент: `client/docs/microfrontends.md`, `client/docs/ui-kit.md`.
 - Предпочитать маленькие инкременты: сначала рабочий core flow, потом reliability patterns.
 - По умолчанию учитывать healthchecks, structured logging, retry/backoff, observability и failure paths.

@@ -1,121 +1,66 @@
 # OrderFlow
 
-`OrderFlow` - учебный production-like backend-проект для практики микросервисной архитектуры на смешанном стеке `NestJS` + `Go`.
-
-Цель репозитория - не просто собрать CRUD, а пошагово построить систему обработки заказов с актуальными инфраструктурными и platform-практиками: `Kafka`, `Redis`, `PostgreSQL`, `Docker Compose`, `OpenTelemetry`, `Prometheus`, `Grafana`, `Jaeger`.
+Учебный production-like проект: e-commerce backend (микросервисы) + клиент (микрофронтенды).
 
 ## Структура репозитория
 
 ```text
 /
-  docs/           # архитектура и git workflow
-  infra/          # docker compose, kafka, monitoring
-  services/       # микросервисы (NestJS + Go)
-  packages/       # общие контракты и shared libs
+  backend/          # NestJS + Go, Docker, Kafka, Postgres
+    docs/           # архитектура, local-dev, observability
+    scripts/        # dev-up.ps1, dev-down.ps1, dev-ps.ps1
+    services/
+    infra/compose/
+    packages/
+  client/           # React monorepo: shell + MFE + @orderflow/ui
+    docs/           # microfrontends, ui-kit
+    apps/
+    packages/
+  docs/             # только общее для репозитория (git-workflow)
 ```
 
-## Что внутри
+## Документация
 
-- `docs/project-blueprint.md` - главный архитектурный документ проекта;
-- `docs/git-workflow.md` - правила коммитов и ведения истории;
-- `infra/compose/` - локальный стек PostgreSQL, Redis, Kafka, Kafka UI;
-- `services/` - каталоги сервисов со skeleton README;
-- `.cursor/rules/` - постоянный контекст и conventions для работы через Cursor.
+| Раздел | Документ | Описание |
+|--------|----------|----------|
+| Backend | [backend/docs/project-blueprint.md](backend/docs/project-blueprint.md) | архитектура микросервисов |
+| Backend | [backend/docs/local-dev-routine.md](backend/docs/local-dev-routine.md) | запуск/остановка стека |
+| Client | [client/docs/microfrontends.md](client/docs/microfrontends.md) | план микрофронтендов |
+| Client | [client/docs/ui-kit.md](client/docs/ui-kit.md) | UI kit `@orderflow/ui` |
+| Repo | [docs/git-workflow.md](docs/git-workflow.md) | ветки и коммиты |
+| — | [backend/README.md](backend/README.md) | entry backend |
+| — | [client/README.md](client/README.md) | entry client |
 
-## Домен
+## Быстрый старт (backend)
 
-Проект моделирует backend интернет-магазина с event-driven обработкой заказов:
+```powershell
+# из корня репозитория
+.\backend\scripts\dev-up.ps1
 
-1. пользователь проходит аутентификацию;
-2. просматривает каталог;
-3. создает заказ;
-4. система резервирует остатки;
-5. система инициирует оплату;
-6. заказ получает итоговый статус;
-7. отправляются уведомления;
-8. события уходят в аналитику.
-
-## Планируемые сервисы
-
-### NestJS
-
-- `api-gateway`
-- `auth-service`
-- `catalog-service`
-- `order-service`
-
-### Go
-
-- `inventory-service`
-- `payment-service`
-- `notification-service`
-- `analytics-service`
-
-## Технологии
-
-- `NestJS`
-- `Go`
-- `Kafka`
-- `Redis`
-- `PostgreSQL`
-- `Docker Compose`
-- `OpenTelemetry`
-- `Prometheus`
-- `Grafana`
-- `Jaeger`
-
-## Как работать с проектом
-
-Пока репозиторий находится на этапе foundation:
-
-- архитектурные изменения сначала фиксируются в `docs/project-blueprint.md`;
-- коммиты оформляются по `Conventional Commits`;
-- изменения держим маленькими и логически цельными;
-- новый сервис добавляем только с понятной зоной ответственности.
-
-## Быстрый старт (gateway + auth)
-
-```bash
-# 1. Инфраструктура
-cd infra/compose
-cp .env.example .env
-docker compose up -d
-
-# 2. Auth (отдельный терминал)
-cd ../../services/auth-service
-cp .env.example .env
+cd backend\services\auth-service
+copy .env.example .env
+npm install
 npm run prisma:migrate:dev
 npm run start:dev
-
-# 3. Gateway (отдельный терминал)
-cd ../api-gateway
-cp .env.example .env
-# JWT_ACCESS_SECRET должен совпадать с auth-service
-npm run start:dev
-
-# 4. Order (отдельный терминал, нужен Kafka)
-cd ../order-service
-cp .env.example .env
-npm run prisma:migrate:dev
-npm run start:dev
-
-# 5. Inventory (Go, отдельный терминал)
-cd ../inventory-service
-cp .env.example .env
-go run ./cmd/server
-
-# 6. Payment (Go, отдельный терминал)
-cd ../payment-service
-cp .env.example .env
-go run ./cmd/server
-
-# 7. Notification (Go + RabbitMQ)
-cd ../notification-service
-cp .env.example .env
-go run ./cmd/server
 ```
 
-## Event flow (полный saga)
+```powershell
+cd backend\services\api-gateway
+copy .env.example .env
+npm install
+npm run start:dev
+```
+
+Полный сценарий (order, inventory, payment) — [backend/docs/local-dev-routine.md](backend/docs/local-dev-routine.md).
+
+Gateway: <http://localhost:3000>
+Kafka UI: <http://localhost:8080>
+
+## Клиент (в разработке)
+
+Скелет: [client/](client/). Следующий шаг — Vite + Module Federation + login/orders.
+
+## Event flow
 
 ```text
 Client -> gateway -> order-service (PENDING)
@@ -133,54 +78,4 @@ Client -> gateway -> order-service (PENDING)
         order-service (CONFIRMED) + notification-service (RabbitMQ)
 ```
 
-**Брокеры:** Kafka — domain/saga events, RabbitMQ — notification tasks.
-
-Регистрация через gateway:
-
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"user@example.com\",\"password\":\"password123\"}"
-```
-
-## Локальный запуск инфраструктуры
-
-```bash
-cd infra/compose
-cp .env.example .env
-docker compose up -d
-```
-
-После старта:
-
-- Kafka UI: <http://localhost:8080>
-- PostgreSQL: `localhost:5433` (Docker; см. [docs/local-dev-routine.md](docs/local-dev-routine.md))
-- Redis: `localhost:6379`
-- Kafka: `localhost:9092`
-
-Подробнее: `infra/compose/README.md`.
-
-**Ежедневный запуск/остановка:** [docs/local-dev-routine.md](docs/local-dev-routine.md) (чеклисты, порты, скрипты `scripts/dev-*.ps1`).
-
-## Сервисы
-
-| Сервис         | Порт | Роль                                      |
-| -------------- | ---- | ----------------------------------------- |
-| `api-gateway`  | 3000 | вход для клиентов, JWT, rate limit, proxy |
-| `auth-service` | 3001 | регистрация, логин, refresh, профиль      |
-| `order-service`| 3002 | заказы, Kafka saga producer/consumer      |
-| `inventory-service` | 3003 | остатки, consumer/producer Kafka   |
-| `payment-service`   | 3004 | оплата, Kafka + RabbitMQ publish   |
-| `notification-service` | 3005 | уведомления, **RabbitMQ** consumer |
-
-Клиенты ходят **только в gateway** (`http://localhost:3000`). Внутренние сервисы не публикуются наружу на этапе локальной разработки.
-
-## Ближайшие шаги
-
-- replay tooling для `dlq.outbox`;
-- бизнес-метрики saga.
-
-Observability:
-
-- Трассировка: `docs/observability.md`, Jaeger <http://localhost:16686>
-- Метрики: `docs/metrics.md`, Grafana <http://localhost:3100>
+Клиенты ходят **только в gateway** (`http://localhost:3000`).
