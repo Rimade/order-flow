@@ -16,7 +16,7 @@ import {
 } from '../common/constants';
 import { AuthenticatedUser } from '../common/types/authenticated-user';
 
-type UpstreamService = 'auth' | 'order';
+type UpstreamService = 'auth' | 'order' | 'catalog';
 
 export type RequestWithUser = Request & {
   user?: AuthenticatedUser;
@@ -83,6 +83,12 @@ export class ProxyService {
     if (service === 'order') {
       return this.configService
         .getOrThrow<string>('ORDER_SERVICE_URL')
+        .replace(/\/$/, '');
+    }
+
+    if (service === 'catalog') {
+      return this.configService
+        .getOrThrow<string>('CATALOG_SERVICE_URL')
         .replace(/\/$/, '');
     }
 

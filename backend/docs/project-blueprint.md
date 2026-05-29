@@ -301,7 +301,8 @@ Frontend (текущий фокус):
 1. ~~Документация~~ — [microfrontends.md](../../client/docs/microfrontends.md), [ui-kit.md](../../client/docs/ui-kit.md);
 2. ~~Фаза 1~~ — Module Federation + login/orders UI;
 3. ~~Фаза 3 (частично)~~ — Playwright E2E, nginx static (`client/infra`);
-4. **Фаза 2** — `catalog-service` + `mfe-catalog`.
+4. ~~Фаза 2~~ — `catalog-service` + `mfe-catalog` (read API + UI);
+5. OpenAPI codegen, Redis cache store для catalog (опционально).
 
 Backend (параллельно по желанию):
 

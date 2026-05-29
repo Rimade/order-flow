@@ -24,6 +24,9 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 						OrderFlow
 					</Link>
 					<nav className="flex items-center gap-4 text-sm">
+						<Link to="/catalog" className="hover:text-of-primary">
+							Каталог
+						</Link>
 						<Link to="/orders" className="hover:text-of-primary">
 							Заказы
 						</Link>

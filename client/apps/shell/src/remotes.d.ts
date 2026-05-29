@@ -16,6 +16,18 @@ declare module 'mfe_orders/OrdersListPage' {
 	export default OrdersListPage;
 }
 
+declare module 'mfe_catalog/CatalogListPage' {
+  import type { ComponentType } from 'react';
+  const CatalogListPage: ComponentType;
+  export default CatalogListPage;
+}
+
+declare module 'mfe_catalog/ProductDetailPage' {
+  import type { ComponentType } from 'react';
+  const ProductDetailPage: ComponentType;
+  export default ProductDetailPage;
+}
+
 declare module 'mfe_orders/OrderDetailPage' {
 	import type { ComponentType } from 'react';
 	const OrderDetailPage: ComponentType;

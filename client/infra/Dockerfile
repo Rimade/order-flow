@@ -21,9 +21,13 @@ RUN pnpm --filter @orderflow/mfe-auth exec vite build
 ENV VITE_BASE_PATH=/mfe-orders/
 RUN pnpm --filter @orderflow/mfe-orders exec vite build
 
+ENV VITE_BASE_PATH=/mfe-catalog/
+RUN pnpm --filter @orderflow/mfe-catalog exec vite build
+
 ENV VITE_BASE_PATH=
 ENV VITE_MFE_AUTH_URL=/mfe-auth/assets/remoteEntry.js
 ENV VITE_MFE_ORDERS_URL=/mfe-orders/assets/remoteEntry.js
+ENV VITE_MFE_CATALOG_URL=/mfe-catalog/assets/remoteEntry.js
 RUN pnpm --filter @orderflow/shell exec vite build
 
 FROM nginx:1.27-alpine
@@ -32,5 +36,6 @@ COPY infra/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /src/apps/shell/dist /usr/share/nginx/html
 COPY --from=build /src/apps/mfe-auth/dist /usr/share/nginx/html/mfe-auth
 COPY --from=build /src/apps/mfe-orders/dist /usr/share/nginx/html/mfe-orders
+COPY --from=build /src/apps/mfe-catalog/dist /usr/share/nginx/html/mfe-catalog
 
 EXPOSE 80

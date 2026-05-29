@@ -8,6 +8,8 @@ const mfeAuthRemote =
 	process.env.VITE_MFE_AUTH_URL ?? 'http://localhost:4101/assets/remoteEntry.js';
 const mfeOrdersRemote =
 	process.env.VITE_MFE_ORDERS_URL ?? 'http://localhost:4102/assets/remoteEntry.js';
+const mfeCatalogRemote =
+	process.env.VITE_MFE_CATALOG_URL ?? 'http://localhost:4103/assets/remoteEntry.js';
 
 export default defineConfig({
 	plugins: [
@@ -18,6 +20,7 @@ export default defineConfig({
 			remotes: {
 				mfe_auth: mfeAuthRemote,
 				mfe_orders: mfeOrdersRemote,
+				mfe_catalog: mfeCatalogRemote,
 			},
 			shared: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
 		}),

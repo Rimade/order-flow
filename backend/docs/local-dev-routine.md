@@ -20,7 +20,7 @@
 | Слой | Что входит | Как запускается | Можно оставить на ночь? |
 |------|------------|-----------------|-------------------------|
 | **Инфра** | Postgres, Redis, Kafka, RabbitMQ, Kafka UI | Docker Compose | Да, часто так и делают |
-| **Приложения** | auth, gateway, order (Nest) + inventory, payment, notification (Go) | Отдельные терминалы | Лучше остановить (Ctrl+C) |
+| **Приложения** | auth, gateway, order, catalog (Nest) + inventory, payment, notification (Go) | Отдельные терминалы | Лучше остановить (Ctrl+C) |
 
 Клиент (браузер, Postman, будущий фронт) ходит **только** в gateway:
 
@@ -131,6 +131,7 @@ docker compose ps
 |--------|----------------|
 | Только регистрация / логин | Docker + **auth** + **gateway** |
 | Создать заказ, сага, Kafka | + **order** + **inventory** + **payment** + **notification** |
+| Каталог в UI (фаза 2) | + **catalog** (:3006) |
 | Смотреть топики | достаточно Docker (Kafka UI :8080) |
 | Метрики / трейсы | `docker compose --profile observability up -d` |
 
@@ -144,6 +145,7 @@ docker compose ps
 | `auth` | `backend/services/auth-service` | `npm run start:dev` |
 | `gateway` | `backend/services/api-gateway` | `npm run start:dev` |
 | `order` | `backend/services/order-service` | `npm run start:dev` |
+| `catalog` | `backend/services/catalog-service` | `npm run start:dev` |
 | `inventory` | `backend/services/inventory-service` | `go run ./cmd/server` |
 | `payment` | `backend/services/payment-service` | `go run ./cmd/server` |
 | `notification` | `backend/services/notification-service` | `go run ./cmd/server` |
@@ -157,6 +159,8 @@ docker compose ps
 | <http://localhost:3001/health> | auth, БД `up` |
 | <http://localhost:3000/health> | gateway OK |
 | <http://localhost:3002/health> | order (если запущен) |
+| <http://localhost:3006/health> | catalog (если запущен) |
+| <http://localhost:3000/api/v1/catalog/products> | список товаров (публично) |
 | <http://localhost:8080> | Kafka UI (если Docker up) |
 
 Скрипт проверки:

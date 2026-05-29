@@ -87,6 +87,18 @@ export type Order = {
 	items: OrderItem[];
 };
 
+export type Product = {
+  id: string;
+  sku: string;
+  name: string;
+  description: string | null;
+  price: string;
+  currency: string;
+  category: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type CreateOrderItemInput = {
 	productId: string;
 	productName: string;
@@ -112,7 +124,15 @@ export const api = {
 				auth: true,
 			}),
 	},
-	orders: {
+  catalog: {
+    listProducts: () =>
+      request<Product[]>('/api/v1/catalog/products', { method: 'GET' }),
+    getProduct: (sku: string) =>
+      request<Product>(`/api/v1/catalog/products/${encodeURIComponent(sku)}`, {
+        method: 'GET',
+      }),
+  },
+  orders: {
 		list: () => request<Order[]>('/api/v1/orders', { method: 'GET', auth: true }),
 		get: (id: string) => request<Order>(`/api/v1/orders/${id}`, { method: 'GET', auth: true }),
 		create: (items: CreateOrderItemInput[], currency = 'USD') =>

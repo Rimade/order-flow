@@ -7,6 +7,8 @@ import { ShellLayout } from './components/ShellLayout';
 
 const LoginPage = lazy(() => import('mfe_auth/LoginPage'));
 const RegisterPage = lazy(() => import('mfe_auth/RegisterPage'));
+const CatalogListPage = lazy(() => import('mfe_catalog/CatalogListPage'));
+const ProductDetailPage = lazy(() => import('mfe_catalog/ProductDetailPage'));
 const OrdersListPage = lazy(() => import('mfe_orders/OrdersListPage'));
 const OrderDetailPage = lazy(() => import('mfe_orders/OrderDetailPage'));
 
@@ -83,6 +85,30 @@ export function App() {
 							<RegisterPage />
 						</LazyRemote>
 					)
+				}
+			/>
+			<Route
+				path="/catalog"
+				element={
+					<ProtectedRoute>
+						<ShellLayout>
+							<LazyRemote>
+								<CatalogListPage />
+							</LazyRemote>
+						</ShellLayout>
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/catalog/:sku"
+				element={
+					<ProtectedRoute>
+						<ShellLayout>
+							<LazyRemote>
+								<ProductDetailPage />
+							</LazyRemote>
+						</ShellLayout>
+					</ProtectedRoute>
 				}
 			/>
 			<Route

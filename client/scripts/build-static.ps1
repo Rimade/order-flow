@@ -15,9 +15,13 @@ try {
     $env:VITE_BASE_PATH = "/mfe-orders/"
     pnpm --filter @orderflow/mfe-orders exec vite build
 
+    $env:VITE_BASE_PATH = "/mfe-catalog/"
+    pnpm --filter @orderflow/mfe-catalog exec vite build
+
     Remove-Item Env:VITE_BASE_PATH -ErrorAction SilentlyContinue
     $env:VITE_MFE_AUTH_URL = "/mfe-auth/assets/remoteEntry.js"
     $env:VITE_MFE_ORDERS_URL = "/mfe-orders/assets/remoteEntry.js"
+    $env:VITE_MFE_CATALOG_URL = "/mfe-catalog/assets/remoteEntry.js"
     pnpm --filter @orderflow/shell exec vite build
 
     Write-Host "Built: apps/shell/dist, apps/mfe-auth/dist, apps/mfe-orders/dist"

@@ -4,10 +4,8 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
-  IsUrl,
   Min,
   validateSync,
-  ValidateIf,
 } from 'class-validator';
 
 class EnvironmentVariables {
@@ -18,42 +16,13 @@ class EnvironmentVariables {
   @IsIn(['development', 'production', 'test'])
   NODE_ENV!: string;
 
-  @IsUrl({ require_tld: false })
-  AUTH_SERVICE_URL!: string;
-
-  @IsUrl({ require_tld: false })
-  ORDER_SERVICE_URL!: string;
-
-  @IsUrl({ require_tld: false })
-  CATALOG_SERVICE_URL!: string;
-
   @IsString()
   @IsNotEmpty()
-  JWT_ACCESS_SECRET!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  JWT_ACCESS_EXPIRES_IN!: string;
+  DATABASE_URL!: string;
 
   @IsNumber()
   @Min(1000)
-  THROTTLE_TTL_MS!: number;
-
-  @IsNumber()
-  @Min(1)
-  THROTTLE_LIMIT!: number;
-
-  @IsNumber()
-  @Min(1000)
-  HTTP_CLIENT_TIMEOUT_MS!: number;
-
-  @IsIn(['redis', 'memory'])
-  THROTTLE_STORAGE!: 'redis' | 'memory';
-
-  @ValidateIf((env: EnvironmentVariables) => env.THROTTLE_STORAGE === 'redis')
-  @IsString()
-  @IsNotEmpty()
-  REDIS_URL?: string;
+  CACHE_TTL_MS!: number;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

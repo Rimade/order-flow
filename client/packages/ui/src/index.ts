@@ -6,4 +6,12 @@ export { Card, CardContent, CardDescription, CardHeader, CardTitle } from './com
 export { Badge, type BadgeProps } from './components/badge';
 export { Alert, AlertDescription, AlertTitle, type AlertProps } from './components/alert';
 export { Spinner } from './components/spinner';
+export {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './components/table';
 export { OrderStatusBadge, type OrderStatus } from './patterns/order-status-badge';

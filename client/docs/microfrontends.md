@@ -264,9 +264,10 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 
 ### Фаза 2 — Каталог
 
-1. `mfe-catalog` когда `catalog-service` выйдет из skeleton
-2. Страница товара → «Оформить» с предзаполненным `productId`
-3. Расширение UI kit: Table, Dialog, Select
+1. [x] `catalog-service` — read API, Prisma, in-memory cache
+2. [x] `mfe-catalog` — список (Table), карточка товара
+3. [x] «Оформить» → заказ с SKU из каталога
+4. [ ] Dialog, Select (расширение UI kit)
 
 ### Фаза 3 — Production-like
 
