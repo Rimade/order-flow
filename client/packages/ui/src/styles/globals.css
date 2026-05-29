@@ -1,1 +1,23 @@
+@import 'tailwindcss';
 @import './tokens.css';
+
+@theme {
+  --color-of-primary: hsl(var(--of-color-primary));
+  --color-of-primary-foreground: hsl(var(--of-color-primary-foreground));
+  --color-of-background: hsl(var(--of-color-background));
+  --color-of-foreground: hsl(var(--of-color-foreground));
+  --color-of-card: hsl(var(--of-color-card));
+  --color-of-muted: hsl(var(--of-color-muted));
+  --color-of-muted-foreground: hsl(var(--of-color-muted-foreground));
+  --color-of-border: hsl(var(--of-color-border));
+  --color-of-success: hsl(var(--of-color-success));
+  --color-of-warning: hsl(var(--of-color-warning));
+  --color-of-danger: hsl(var(--of-color-danger));
+  --color-of-info: hsl(var(--of-color-info));
+  --radius-of-md: var(--of-radius-md);
+  --radius-of-lg: var(--of-radius-lg);
+}
+
+body {
+  @apply bg-of-background text-of-foreground antialiased;
+}
