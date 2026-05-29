@@ -3,7 +3,7 @@
 ## Локальный стек
 
 ```bash
-cd infra/compose
+cd backend/infra/compose
 docker compose up -d jaeger
 ```
 

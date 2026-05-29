@@ -1,7 +1,7 @@
 # Stop Docker stack (keeps volumes / DB data)
 $ErrorActionPreference = "Stop"
-$Root = Split-Path -Parent $PSScriptRoot
-$ComposeDir = Join-Path $Root "infra\compose"
+$BackendRoot = Split-Path -Parent $PSScriptRoot
+$ComposeDir = Join-Path $BackendRoot "infra\compose"
 
 Push-Location $ComposeDir
 try {

@@ -191,7 +191,7 @@
 
 Проект постепенно внедряет production-практики:
 
-- **`Outbox pattern`** — реализован в `order-service`, `inventory-service`, `payment-service` (см. `docs/outbox-pattern.md`);
+- **`Outbox pattern`** — реализован в `order-service`, `inventory-service`, `payment-service` (см. [outbox-pattern.md](./outbox-pattern.md));
 - **`Saga pattern`** — реализован для flow заказа;
 - **`Idempotency`** — `processed_events` в consumer-сервисах;
 - `Dead Letter Queue` — в планах;
@@ -199,31 +199,32 @@
 - health/readiness/liveness endpoints;
 - structured logging с correlation id / trace id.
 
-## Предлагаемая структура репозитория
+## Клиент (микрофронтенды)
+
+Планируется фронтенд-monorepo: **shell** + remote-приложения по доменам, общий UI kit и вызовы API **только через `api-gateway`**.
+
+| Документ | Содержание |
+|----------|------------|
+| [client/docs/microfrontends.md](../../client/docs/microfrontends.md) | архитектура MFE, Module Federation, этапы |
+| [client/docs/ui-kit.md](../../client/docs/ui-kit.md) | `@orderflow/ui` — собственная дизайн-система (подход как shadcn, код в репозитории) |
+
+Статус: **документация готова**, скелет `client/` создан; Module Federation и экраны — следующий инкремент.
+
+## Структура репозитория
 
 ```text
 /
-  docs/
-    project-blueprint.md
-    outbox-pattern.md
-  infra/
-    docker/
-    compose/
-    monitoring/
-    kafka/
-  services/
-    api-gateway/
-    auth-service/
-    catalog-service/
-    order-service/
-    inventory-service/
-    payment-service/
-    notification-service/
-    analytics-service/
-  packages/
-    contracts/
-    shared-observability/
-    shared-testkit/
+  docs/                    # git-workflow (общее для репозитория)
+  backend/
+    docs/                  # blueprint, local-dev, outbox, observability
+    scripts/               # dev-up.ps1 → infra/compose
+    services/              # api-gateway, auth, order, inventory, ...
+    infra/compose/         # Postgres, Redis, Kafka, RabbitMQ
+    packages/              # contracts, shared-observability, shared-testkit
+  client/
+    docs/                  # microfrontends, ui-kit
+    apps/                  # shell, mfe-auth, mfe-orders, mfe-catalog (позже)
+    packages/              # ui, api-client, auth, config
 ```
 
 ## Этапы разработки
@@ -263,6 +264,14 @@
 - компенсационные сценарии в saga;
 - нагрузочные и интеграционные тесты.
 
+### Этап 6. Frontend (микрофронтенды)
+
+- monorepo `client/` + `packages/ui` ([microfrontends.md](../../client/docs/microfrontends.md));
+- shell + `mfe-auth` + `mfe-orders`, Module Federation;
+- UI kit `@orderflow/ui` ([ui-kit.md](../../client/docs/ui-kit.md));
+- сценарий в браузере: login → заказ → `CONFIRMED`;
+- позже: `mfe-catalog`, Playwright E2E, деплой статики remotes.
+
 ## Definition of Done для каждой новой фичи
 
 Фича считается завершенной, если:
@@ -277,15 +286,23 @@
 ## Как работать дальше в этом репозитории
 
 - сначала обновлять этот blueprint при крупных архитектурных решениях;
-- соблюдать правила истории из `docs/git-workflow.md`;
+- соблюдать правила истории из [docs/git-workflow.md](../../docs/git-workflow.md);
 - затем создавать сервисы и инфраструктуру маленькими инкрементами;
 - не добавлять новый сервис без четкой ответственности;
 - предпочитать простую реализацию, если production-паттерн пока не нужен на текущем этапе;
-- спорные решения фиксировать явно в `docs/`.
+- спорные решения фиксировать в `backend/docs/` или `client/docs/` (ADR при необходимости).
 
 ## Ближайший следующий шаг
 
-Полный core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и **компенсация inventory при payment.failed** реализованы. Следующий шаг:
+Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и компенсация inventory реализованы.
+
+Frontend (текущий фокус):
+
+1. ~~Документация~~ — [microfrontends.md](../../client/docs/microfrontends.md), [ui-kit.md](../../client/docs/ui-kit.md);
+2. Доработать `client/`: Module Federation + login/orders UI;
+3. Первый E2E в браузере без Postman.
+
+Backend (параллельно по желанию):
 
 - replay tooling для `dlq.outbox`;
-- бизнес-метрики saga (orders created, payments failed).
+- `catalog-service` (разблокирует `mfe-catalog`).

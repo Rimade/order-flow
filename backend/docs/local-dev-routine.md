@@ -7,8 +7,11 @@
 **Связанные документы:**
 
 - [infra/compose/README.md](../infra/compose/README.md) — порты и compose
-- [README.md](../README.md) — быстрый старт и event flow
-- [project-blueprint.md](./project-blueprint.md) — архитектура
+- [README.md](../../README.md) — обзор репозитория
+- [project-blueprint.md](./project-blueprint.md) — архитектура backend
+- [client/docs/microfrontends.md](../../client/docs/microfrontends.md) — план фронтенда
+- [client/README.md](../../client/README.md) — monorepo фронтенда
+- [client/docs/ui-kit.md](../../client/docs/ui-kit.md) — дизайн-система `@orderflow/ui`
 
 ---
 
@@ -55,7 +58,7 @@ cd C:\Users\Amin\Desktop\kafka_microservices_redis
 ### 3.2. Инфраструктура (Docker)
 
 ```powershell
-cd infra\compose
+cd backend\infra\compose
 copy .env.example .env
 docker compose up -d
 docker compose ps
@@ -69,15 +72,14 @@ docker compose ps
 Скрипт из корня репозитория:
 
 ```powershell
-.\scripts\dev-up.ps1
-```
+.\backend\scripts\dev-up.ps1
 
 ### 3.3. Подготовить `.env` у сервисов
 
 В каждой папке сервиса (первый раз):
 
 ```powershell
-cd services\auth-service
+cd backend\services\auth-service
 copy .env.example .env
 npm install
 npm run prisma:migrate:dev
@@ -87,12 +89,12 @@ npm run prisma:migrate:dev
 
 | Сервис | Папка | Дополнительно |
 |--------|-------|---------------|
-| auth | `services/auth-service` | `prisma:migrate:dev` |
-| gateway | `services/api-gateway` | `npm install` |
-| order | `services/order-service` | `prisma:migrate:dev` |
-| inventory | `services/inventory-service` | `go mod download` |
-| payment | `services/payment-service` | `go mod download` |
-| notification | `services/notification-service` | `go mod download` |
+| auth | `backend/services/auth-service` | `prisma:migrate:dev` |
+| gateway | `backend/services/api-gateway` | `npm install` |
+| order | `backend/services/order-service` | `prisma:migrate:dev` |
+| inventory | `backend/services/inventory-service` | `go mod download` |
+| payment | `backend/services/payment-service` | `go mod download` |
+| notification | `backend/services/notification-service` | `go mod download` |
 
 **Секрет JWT:** в `api-gateway/.env` значение `JWT_ACCESS_SECRET` **должно совпадать** с `auth-service/.env`.
 
@@ -109,7 +111,7 @@ npm run prisma:migrate:dev
 ### Шаг 1 — Docker (~30 секунд)
 
 ```powershell
-cd infra\compose
+cd backend\infra\compose
 docker compose up -d
 docker compose ps
 ```
@@ -117,8 +119,8 @@ docker compose ps
 Или из корня:
 
 ```powershell
-.\scripts\dev-up.ps1
-.\scripts\dev-ps.ps1
+.\backend\scripts\dev-up.ps1
+.\backend\scripts\dev-ps.ps1
 ```
 
 Если контейнеры уже созданы, команда только «разбудит» их.
@@ -138,13 +140,13 @@ docker compose ps
 
 | Вкладка | Папка | Команда |
 |---------|-------|---------|
-| `infra` | `infra/compose` | уже `docker compose up -d` |
-| `auth` | `services/auth-service` | `npm run start:dev` |
-| `gateway` | `services/api-gateway` | `npm run start:dev` |
-| `order` | `services/order-service` | `npm run start:dev` |
-| `inventory` | `services/inventory-service` | `go run ./cmd/server` |
-| `payment` | `services/payment-service` | `go run ./cmd/server` |
-| `notification` | `services/notification-service` | `go run ./cmd/server` |
+| `infra` | `backend/infra/compose` | уже `docker compose up -d` |
+| `auth` | `backend/services/auth-service` | `npm run start:dev` |
+| `gateway` | `backend/services/api-gateway` | `npm run start:dev` |
+| `order` | `backend/services/order-service` | `npm run start:dev` |
+| `inventory` | `backend/services/inventory-service` | `go run ./cmd/server` |
+| `payment` | `backend/services/payment-service` | `go run ./cmd/server` |
+| `notification` | `backend/services/notification-service` | `go run ./cmd/server` |
 
 Дождитесь в логах Nest: `Nest application successfully started`.
 
@@ -160,7 +162,7 @@ docker compose ps
 Скрипт проверки:
 
 ```powershell
-.\scripts\dev-check.ps1
+.\backend\scripts\dev-check.ps1
 ```
 
 ---
@@ -178,14 +180,14 @@ docker compose ps
 ### Вариант B — освободить RAM/CPU
 
 ```powershell
-cd infra\compose
+cd backend\infra\compose
 docker compose down
 ```
 
 Или:
 
 ```powershell
-.\scripts\dev-down.ps1
+.\backend\scripts\dev-down.ps1
 ```
 
 **Не используйте** `docker compose down -v`, если не хотите **полностью сбросить** базы в Docker.
@@ -290,7 +292,7 @@ Headers: `Content-Type: application/json`, `Authorization: Bearer <token>`
 Тяжёлые образы (Grafana, Prometheus, Jaeger). При медленном интернете первый `up` может падать по таймауту.
 
 ```powershell
-cd infra\compose
+cd backend\infra\compose
 docker compose --profile observability up -d
 ```
 
@@ -323,7 +325,7 @@ DATABASE_URL=postgresql://orderflow:orderflow@localhost:5433/orderflow_auth
 Проверка с хоста:
 
 ```powershell
-cd services\auth-service
+cd backend\services\auth-service
 node -e "const {Client}=require('pg');const c=new Client({connectionString:'postgresql://orderflow:orderflow@localhost:5433/orderflow_auth'});c.connect().then(()=>{console.log('OK');c.end()}).catch(e=>console.error(e.message))"
 ```
 
@@ -349,11 +351,11 @@ node -e "const {Client}=require('pg');const c=new Client({connectionString:'post
 
 ---
 
-## 11. Скрипты в `scripts/`
+## 11. Скрипты в `backend/scripts/`
 
 | Скрипт | Действие |
 |--------|----------|
-| `dev-up.ps1` | `docker compose up -d` в `infra/compose` |
+| `dev-up.ps1` | `docker compose up -d` в `backend/infra/compose` |
 | `dev-down.ps1` | `docker compose down` (без удаления volumes) |
 | `dev-ps.ps1` | статус контейнеров |
 | `dev-check.ps1` | HTTP health auth + gateway |
@@ -361,8 +363,7 @@ node -e "const {Client}=require('pg');const c=new Client({connectionString:'post
 Запуск из **корня репозитория**:
 
 ```powershell
-.\scripts\dev-up.ps1
-```
+.\backend\scripts\dev-up.ps1
 
 ---
 
