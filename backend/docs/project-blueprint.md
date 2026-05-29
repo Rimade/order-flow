@@ -300,7 +300,8 @@ Frontend (текущий фокус):
 
 1. ~~Документация~~ — [microfrontends.md](../../client/docs/microfrontends.md), [ui-kit.md](../../client/docs/ui-kit.md);
 2. ~~Фаза 1~~ — Module Federation + login/orders UI;
-3. **Фаза 2** — `mfe-catalog` (после `catalog-service`) или **фаза 3** — Playwright E2E, prod static deploy.
+3. ~~Фаза 3 (частично)~~ — Playwright E2E, nginx static (`client/infra`);
+4. **Фаза 2** — `catalog-service` + `mfe-catalog`.
 
 Backend (параллельно по желанию):
 

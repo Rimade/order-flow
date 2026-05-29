@@ -1,0 +1,9 @@
+node_modules
+**/dist
+.turbo
+playwright-report
+test-results
+blob-report
+.env
+.env.local
+*.log

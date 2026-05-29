@@ -271,7 +271,7 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 ### Фаза 3 — Production-like
 
 1. [x] Playwright E2E — `client/e2e/order-saga.spec.ts` (`pnpm e2e`)
-2. Docker/nginx: статика shell + remotes
+2. [x] Docker/nginx: статика shell + remotes — `client/infra/`, `pnpm docker:up` → :8080
 3. OpenAPI codegen
 4. Feature flags (mock): `catalog.enabled`
 5. (Опционально) Rspack вместо Vite для сравнения скорости сборки
@@ -331,4 +331,4 @@ Remotes публикуются как статика; shell в runtime знае�
 - [ ] `cd client && pnpm dev` — shell :4000, remotes :4101/:4102
 - [ ] В браузере: login → заказ sku-1 → **CONFIRMED**
 
-**Следующий шаг:** фаза 2 (каталог) или фаза 3 (Playwright E2E, nginx static).
+**Следующий шаг:** фаза 2 (`catalog-service` + `mfe-catalog`) или OpenAPI codegen / feature flags.

@@ -1,0 +1,13 @@
+# Static frontend (shell + MFE remotes). API gateway must run separately on the host.
+services:
+  client:
+    build:
+      context: ../..
+      dockerfile: infra/Dockerfile
+      args:
+        # Browser on host calls gateway on localhost:3000
+        VITE_API_URL: http://localhost:3000
+    ports:
+      - '8080:80'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'

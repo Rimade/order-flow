@@ -66,3 +66,15 @@ pnpm e2e
 
 Playwright сам поднимет `pnpm dev` (shell + remotes), если они ещё не запущены.  
 UI-режим: `pnpm e2e:ui`. Отчёт: `pnpm e2e:report`.
+
+## Production-like static (nginx + Docker)
+
+Собранный shell и remotes на **http://localhost:8080** (один origin для Module Federation):
+
+```powershell
+# backend на :3000 должен быть запущен
+cd client
+pnpm docker:up
+```
+
+Подробнее: [infra/README.md](./infra/README.md).

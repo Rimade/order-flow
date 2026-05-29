@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
+const mfeAuthRemote =
+	process.env.VITE_MFE_AUTH_URL ?? 'http://localhost:4101/assets/remoteEntry.js';
+const mfeOrdersRemote =
+	process.env.VITE_MFE_ORDERS_URL ?? 'http://localhost:4102/assets/remoteEntry.js';
+
 export default defineConfig({
 	plugins: [
 		react(),
@@ -11,8 +16,8 @@ export default defineConfig({
 		federation({
 			name: 'shell',
 			remotes: {
-				mfe_auth: 'http://localhost:4101/assets/remoteEntry.js',
-				mfe_orders: 'http://localhost:4102/assets/remoteEntry.js',
+				mfe_auth: mfeAuthRemote,
+				mfe_orders: mfeOrdersRemote,
 			},
 			shared: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
 		}),
