@@ -246,11 +246,11 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 
 ## 11. Этапы разработки фронта
 
-### Фаза 0 — Документация (текущая)
+### Фаза 0 — Документация
 
 - [x] `client/docs/microfrontends.md`
 - [x] `client/docs/ui-kit.md`
-- [ ] обновить `project-blueprint.md`
+- [x] [backend/docs/project-blueprint.md](../../backend/docs/project-blueprint.md) — статус клиента
 
 ### Фаза 1 — Core UI + 2 remotes
 
@@ -278,16 +278,17 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 
 ---
 
-## 12. Локальная разработка (когда появится `apps/`)
+## 12. Локальная разработка
 
-```bash
-# Терминал 1: backend (как сейчас)
-cd backend/infra/compose && docker compose up -d
-# auth, gateway, order, inventory, payment — см. local-dev-routine.md
+```powershell
+# Терминал 1: backend — см. backend/docs/local-dev-routine.md
+.\backend\scripts\dev-up.ps1
 
-# Терминал 2: frontend monorepo
+# Терминал 2: frontend (из папки client)
+cd client
+copy .env.example .env
 pnpm install
-pnpm dev   # turbo: shell + mfe-auth + mfe-orders
+pnpm dev
 ```
 
 Открыть: `http://localhost:4000` (shell). API: `http://localhost:3000`.
@@ -316,17 +317,18 @@ Remotes публикуются как статика; shell в runtime знае�
 - хранение JWT (`sessionStorage` vs `memory` + httpOnly cookie — у нас пока Bearer в SPA);
 - polling vs WebSocket для статуса заказа.
 
-При смене подхода — обновить этот файл и [project-blueprint.md](./project-blueprint.md).
+При смене подхода — обновить этот файл и [backend/docs/project-blueprint.md](../../backend/docs/project-blueprint.md).
+
+См. ADR: [adr/001-mfe-and-jwt.md](./adr/001-mfe-and-jwt.md).
 
 ---
 
-## 15. Чеклист перед стартом кода
+## 15. Чеклист локального демо
 
-- [ ] Backend: gateway + auth + order + inventory + payment запускаются ([local-dev-routine.md](../../backend/docs/local-dev-routine.md))
-- [ ] В `.env` gateway и auth совпадает `JWT_ACCESS_SECRET`
-- [ ] Postgres на порту **5433** в `.env` сервисов
-- [ ] Node.js 20+ установлен
-- [ ] pnpm установлен (`corepack enable`)
-- [ ] Прочитан [ui-kit.md](./ui-kit.md) — согласованы токены и принципы копирования компонентов
+- [ ] Backend: gateway + auth + order + inventory + payment ([local-dev-routine.md](../../backend/docs/local-dev-routine.md))
+- [ ] `JWT_ACCESS_SECRET` совпадает в auth и gateway
+- [ ] Postgres **5433** в `.env` сервисов
+- [ ] `cd client && pnpm dev` — shell :4000, remotes :4101/:4102
+- [ ] В браузере: login → заказ sku-1 → **CONFIRMED**
 
-Следующий шаг: **доработать `client/`** (Module Federation, экраны login/orders) по фазе 1.
+**Следующий шаг:** фаза 2 (каталог) или фаза 3 (Playwright E2E, nginx static).

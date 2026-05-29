@@ -5,7 +5,7 @@
 **Связанные документы:**
 
 - [microfrontends.md](./microfrontends.md) — где UI kit используется (все remotes + shell)
-- [project-blueprint.md](./project-blueprint.md) — общий контекст проекта
+- [backend/docs/project-blueprint.md](../../backend/docs/project-blueprint.md) — общий контекст проекта
 
 ---
 

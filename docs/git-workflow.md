@@ -59,6 +59,9 @@ type(scope): short summary
 - `analytics`
 - `infra`
 - `observability`
+- `client` — monorepo целиком
+- `shell`, `mfe-auth`, `mfe-orders` — приложения фронта
+- `ui` — пакет `@orderflow/ui`
 
 ## Когда делить на несколько коммитов
 

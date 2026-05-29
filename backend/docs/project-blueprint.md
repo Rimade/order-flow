@@ -208,7 +208,7 @@
 | [client/docs/microfrontends.md](../../client/docs/microfrontends.md) | архитектура MFE, Module Federation, этапы |
 | [client/docs/ui-kit.md](../../client/docs/ui-kit.md) | `@orderflow/ui` — собственная дизайн-система (подход как shadcn, код в репозитории) |
 
-Статус: **документация готова**, скелет `client/` создан; Module Federation и экраны — следующий инкремент.
+Статус: **фаза 1 готова** — shell + `mfe-auth` + `mfe-orders`, Module Federation, UI kit, сценарий login → заказ → `CONFIRMED` в браузере ([client/README.md](../../client/README.md)).
 
 ## Структура репозитория
 
@@ -299,8 +299,8 @@ Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и ком
 Frontend (текущий фокус):
 
 1. ~~Документация~~ — [microfrontends.md](../../client/docs/microfrontends.md), [ui-kit.md](../../client/docs/ui-kit.md);
-2. Доработать `client/`: Module Federation + login/orders UI;
-3. Первый E2E в браузере без Postman.
+2. ~~Фаза 1~~ — Module Federation + login/orders UI;
+3. **Фаза 2** — `mfe-catalog` (после `catalog-service`) или **фаза 3** — Playwright E2E, prod static deploy.
 
 Backend (параллельно по желанию):
 

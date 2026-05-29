@@ -364,6 +364,7 @@ node -e "const {Client}=require('pg');const c=new Client({connectionString:'post
 
 ```powershell
 .\backend\scripts\dev-up.ps1
+```
 
 ---
 
@@ -378,10 +379,25 @@ node -e "const {Client}=require('pg');const c=new Client({connectionString:'post
 - [ ] `POST /api/v1/orders` — 201/200 и id заказа
 - [ ] Kafka UI — появились сообщения в топиках
 
+### Фронтенд (браузер, фаза 1)
+
+Отдельный терминал после backend:
+
+```powershell
+cd client
+copy .env.example .env
+pnpm install
+pnpm dev
+```
+
+- [ ] Открыт **<http://localhost:4000>** (shell + remotes :4101, :4102)
+- [ ] Регистрация / логин в UI
+- [ ] «Создать заказ (sku-1)» → деталь заказа → статус **CONFIRMED** (polling ~2 с)
+
 ---
 
 ## 13. Краткая памятка (одна строка)
 
-**Утро:** `dev-up` → нужные терминалы `start:dev` / `go run`.
+**Утро:** `dev-up` → нужные терминалы `start:dev` / `go run` → `cd client && pnpm dev`.
 **Вечер:** Ctrl+C в терминалах → по желанию `dev-down`.
-**Клиент всегда:** `http://localhost:3000`.
+**API для UI:** `http://localhost:3000` (gateway). **Браузер:** `http://localhost:4000`.
