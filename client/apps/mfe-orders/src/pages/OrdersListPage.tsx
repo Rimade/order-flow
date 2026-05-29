@@ -13,7 +13,7 @@ import {
 } from '@orderflow/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const DEMO_ITEM: CreateOrderItemInput = {
 	productId: 'sku-1',
@@ -23,6 +23,7 @@ const DEMO_ITEM: CreateOrderItemInput = {
 };
 
 export default function OrdersListPage() {
+	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [error, setError] = useState<string | null>(null);
 
@@ -33,9 +34,10 @@ export default function OrdersListPage() {
 
 	const createMutation = useMutation({
 		mutationFn: () => api.orders.create([DEMO_ITEM]),
-		onSuccess: () => {
+		onSuccess: (order) => {
 			setError(null);
 			void queryClient.invalidateQueries({ queryKey: ['orders'] });
+			navigate(`/orders/${order.id}`);
 		},
 		onError: (e) => {
 			setError(e instanceof ApiError ? e.message : 'Не удалось создать заказ');

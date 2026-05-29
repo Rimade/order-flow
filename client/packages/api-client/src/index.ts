@@ -1,4 +1,4 @@
-import { getAuthHeaders } from '@orderflow/auth';
+import { clearAuthSession, getAuthHeaders } from '@orderflow/auth';
 import { apiBaseUrl } from '@orderflow/config';
 import type { AuthTokens } from '@orderflow/auth';
 
@@ -39,6 +39,13 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 			data = JSON.parse(text) as unknown;
 		} catch {
 			data = text;
+		}
+	}
+
+	if (response.status === 401 && auth) {
+		clearAuthSession();
+		if (typeof window !== 'undefined') {
+			window.location.assign('/login');
 		}
 	}
 
