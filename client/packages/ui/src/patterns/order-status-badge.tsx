@@ -26,5 +26,9 @@ type OrderStatusBadgeProps = {
 };
 
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
-	return <Badge variant={statusVariant[status]}>{statusLabel[status]}</Badge>;
+	return (
+		<Badge variant={statusVariant[status]} data-testid="order-status">
+			{statusLabel[status]}
+		</Badge>
+	);
 }

@@ -77,6 +77,7 @@ export default function OrdersListPage() {
 				</div>
 				<Button
 					type="button"
+					data-testid="create-order"
 					onClick={() => createMutation.mutate()}
 					disabled={createMutation.isPending}>
 					{createMutation.isPending ? 'Создание…' : 'Создать заказ (sku-1)'}

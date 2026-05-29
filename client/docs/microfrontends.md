@@ -270,7 +270,7 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 
 ### Фаза 3 — Production-like
 
-1. Playwright E2E
+1. [x] Playwright E2E — `client/e2e/order-saga.spec.ts` (`pnpm e2e`)
 2. Docker/nginx: статика shell + remotes
 3. OpenAPI codegen
 4. Feature flags (mock): `catalog.enabled`

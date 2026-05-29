@@ -52,3 +52,17 @@ VITE_API_URL=http://localhost:3000
 ```powershell
 pnpm build
 ```
+
+## E2E (Playwright)
+
+**Сначала backend** (gateway :3000 + saga-сервисы). Затем:
+
+```powershell
+cd client
+pnpm install
+pnpm exec playwright install chromium
+pnpm e2e
+```
+
+Playwright сам поднимет `pnpm dev` (shell + remotes), если они ещё не запущены.  
+UI-режим: `pnpm e2e:ui`. Отчёт: `pnpm e2e:report`.

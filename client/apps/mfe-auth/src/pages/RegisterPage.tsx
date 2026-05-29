@@ -64,26 +64,38 @@ export default function RegisterPage() {
 						) : null}
 						<div className="space-y-2">
 							<Label htmlFor="email">Email</Label>
-							<Input id="email" type="email" autoComplete="email" {...register('email')} />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                data-testid="register-email"
+                {...register('email')}
+              />
 							{errors.email ? (
 								<p className="text-sm text-of-danger">{errors.email.message}</p>
 							) : null}
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="password">Пароль</Label>
-							<Input
-								id="password"
-								type="password"
-								autoComplete="new-password"
-								{...register('password')}
-							/>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                data-testid="register-password"
+                {...register('password')}
+              />
 							{errors.password ? (
 								<p className="text-sm text-of-danger">{errors.password.message}</p>
 							) : null}
 						</div>
-						<Button type="submit" className="w-full" disabled={isSubmitting}>
-							{isSubmitting ? 'Создание…' : 'Зарегистрироваться'}
-						</Button>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting}
+              data-testid="register-submit"
+            >
+              {isSubmitting ? 'Создание…' : 'Зарегистрироваться'}
+            </Button>
 					</form>
 					<p className="mt-4 text-center text-sm text-of-muted-foreground">
 						Уже есть аккаунт?{' '}
