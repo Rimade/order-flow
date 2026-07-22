@@ -17,6 +17,7 @@ export default defineConfig({
 			exposes: {
 				'./OrdersListPage': './src/pages/OrdersListPage.tsx',
 				'./OrderDetailPage': './src/pages/OrderDetailPage.tsx',
+				'./OutboxOpsPage': './src/pages/OutboxOpsPage.tsx',
 			},
 			shared: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
 		}),

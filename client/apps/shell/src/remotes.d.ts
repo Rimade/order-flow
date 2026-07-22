@@ -33,3 +33,9 @@ declare module 'mfe_orders/OrderDetailPage' {
 	const OrderDetailPage: ComponentType;
 	export default OrderDetailPage;
 }
+
+declare module 'mfe_orders/OutboxOpsPage' {
+	import type { ComponentType } from 'react';
+	const OutboxOpsPage: ComponentType;
+	export default OutboxOpsPage;
+}

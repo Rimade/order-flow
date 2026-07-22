@@ -50,7 +50,10 @@ API / Consumer handler
 
 ### Replay FAILED outbox (локально)
 
-Самый безопасный путь — **вернуть строку в `PENDING`**, чтобы существующий relay опубликовал снова (не писать второй publisher).
+**UI (order-service):** http://localhost:4000/ops/outbox — список FAILED + кнопка Replay  
+(флаг `VITE_OPS_ENABLED`, API `GET/POST /api/v1/ops/outbox/...`).
+
+**CLI (order / inventory / payment):**
 
 ```powershell
 # Список FAILED в order / inventory / payment

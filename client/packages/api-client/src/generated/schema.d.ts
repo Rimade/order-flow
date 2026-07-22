@@ -133,6 +133,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ops/outbox/failed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List FAILED outbox messages (order-service) */
+        get: operations["opsOutboxListFailed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ops/outbox/{id}/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset FAILED outbox row to PENDING for relay republish */
+        post: operations["opsOutboxReplay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -204,6 +238,25 @@ export interface components {
         CreateOrderBody: {
             items: components["schemas"]["CreateOrderItemInput"][];
             currency?: string;
+        };
+        OutboxFailedMessage: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            aggregateId: string;
+            eventType: string;
+            topic: string;
+            messageKey: string;
+            /** @enum {string} */
+            status: "PENDING" | "PUBLISHED" | "FAILED";
+            retryCount: number;
+            lastError?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            /** @enum {string} */
+            service: "order-service";
         };
     };
     responses: never;
@@ -426,6 +479,64 @@ export interface operations {
                 content: {
                     "text/event-stream": string;
                 };
+            };
+        };
+    };
+    opsOutboxListFailed: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxFailedMessage"][];
+                };
+            };
+        };
+    };
+    opsOutboxReplay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxFailedMessage"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not FAILED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

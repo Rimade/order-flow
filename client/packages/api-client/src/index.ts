@@ -72,6 +72,7 @@ export type OrderItem = components['schemas']['OrderItem'];
 export type Order = components['schemas']['Order'];
 export type Product = components['schemas']['Product'];
 export type CreateOrderItemInput = components['schemas']['CreateOrderItemInput'];
+export type OutboxFailedMessage = components['schemas']['OutboxFailedMessage'];
 
 export { watchOrderStatus, type OrderStatusEvent } from './order-status-sse';
 
@@ -114,6 +115,18 @@ export const api = {
 							: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
 				},
 				body: { items, currency },
+			}),
+	},
+	ops: {
+		listFailedOutbox: (limit = 50) =>
+			request<OutboxFailedMessage[]>(
+				`/api/v1/ops/outbox/failed?limit=${encodeURIComponent(String(limit))}`,
+				{ method: 'GET', auth: true },
+			),
+		replayOutbox: (id: string) =>
+			request<OutboxFailedMessage>(`/api/v1/ops/outbox/${encodeURIComponent(id)}/replay`, {
+				method: 'POST',
+				auth: true,
 			}),
 	},
 };

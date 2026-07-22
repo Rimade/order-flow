@@ -171,6 +171,55 @@ paths:
             text/event-stream:
               schema:
                 type: string
+  /ops/outbox/failed:
+    get:
+      operationId: opsOutboxListFailed
+      tags: [ops]
+      summary: List FAILED outbox messages (order-service)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OutboxFailedMessage'
+  /ops/outbox/{id}/replay:
+    post:
+      operationId: opsOutboxReplay
+      tags: [ops]
+      summary: Reset FAILED outbox row to PENDING for relay republish
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutboxFailedMessage'
+        '404':
+          description: Not found
+        '422':
+          description: Not FAILED
 components:
   securitySchemes:
     bearerAuth:
@@ -312,3 +361,46 @@ components:
           type: string
           minLength: 3
           maxLength: 3
+    OutboxFailedMessage:
+      type: object
+      required:
+        - id
+        - aggregateId
+        - eventType
+        - topic
+        - messageKey
+        - status
+        - retryCount
+        - createdAt
+        - service
+      properties:
+        id:
+          type: string
+          format: uuid
+        aggregateId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        topic:
+          type: string
+        messageKey:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, PUBLISHED, FAILED]
+        retryCount:
+          type: integer
+        lastError:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        service:
+          type: string
+          enum: [order-service]

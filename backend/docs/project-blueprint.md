@@ -311,6 +311,7 @@ Backend (параллельно по желанию):
 - ~~Idempotency-Key~~ — Redis в order-service, см. [idempotency.md](./idempotency.md);
 - ~~Swagger UI~~ — gateway `/docs` из contracts YAML, [openapi.md](./openapi.md);
 - ~~SSE статуса заказа~~ — [order-status-sse.md](./order-status-sse.md);
+- ~~Outbox ops UI~~ — [outbox-ops-ui.md](./outbox-ops-ui.md) + CLI replay;
 - catalog: `CACHE_STORE=redis` в `.env` (по умолчанию `memory`);
 - CI: `.github/workflows/backend-ci.yml` (Nest build + compose postgres/redis); полный saga e2e — локально;
 - Observability runbook: [observability.md](./observability.md).

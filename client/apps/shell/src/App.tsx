@@ -12,6 +12,7 @@ const CatalogListPage = lazy(() => import('mfe_catalog/CatalogListPage'));
 const ProductDetailPage = lazy(() => import('mfe_catalog/ProductDetailPage'));
 const OrdersListPage = lazy(() => import('mfe_orders/OrdersListPage'));
 const OrderDetailPage = lazy(() => import('mfe_orders/OrderDetailPage'));
+const OutboxOpsPage = lazy(() => import('mfe_orders/OutboxOpsPage'));
 
 function RemoteFallback() {
 	return (
@@ -140,6 +141,20 @@ export function App() {
 					</ProtectedRoute>
 				}
 			/>
+			{features.ops ? (
+				<Route
+					path="/ops/outbox"
+					element={
+						<ProtectedRoute>
+							<ShellLayout>
+								<LazyRemote>
+									<OutboxOpsPage />
+								</LazyRemote>
+							</ShellLayout>
+						</ProtectedRoute>
+					}
+				/>
+			) : null}
 			<Route
 				path="/"
 				element={<Navigate to={isAuthenticated() ? '/orders' : '/login'} replace />}
