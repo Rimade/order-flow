@@ -105,6 +105,12 @@ export const api = {
 			request<Order>('/api/v1/orders', {
 				method: 'POST',
 				auth: true,
+				headers: {
+					'Idempotency-Key':
+						typeof crypto !== 'undefined' && 'randomUUID' in crypto
+							? crypto.randomUUID()
+							: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+				},
 				body: { items, currency },
 			}),
 	},

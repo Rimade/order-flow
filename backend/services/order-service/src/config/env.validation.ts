@@ -3,6 +3,7 @@ import {
   IsIn,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   validateSync,
@@ -75,10 +76,27 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   OUTBOX_DLQ_TOPIC!: string;
+
+  @IsIn(['true', 'false'])
+  IDEMPOTENCY_ENABLED!: string;
+
+  @IsOptional()
+  @IsString()
+  REDIS_URL?: string;
+
+  @IsNumber()
+  @Min(60)
+  IDEMPOTENCY_TTL_SECONDS!: number;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
-  const validated = plainToInstance(EnvironmentVariables, config, {
+  const withDefaults = {
+    IDEMPOTENCY_ENABLED: 'true',
+    IDEMPOTENCY_TTL_SECONDS: 86_400,
+    ...config,
+  };
+
+  const validated = plainToInstance(EnvironmentVariables, withDefaults, {
     enableImplicitConversion: true,
   });
 
@@ -86,6 +104,10 @@ export function validateEnv(config: Record<string, unknown>) {
 
   if (errors.length > 0) {
     throw new Error(errors.toString());
+  }
+
+  if (validated.IDEMPOTENCY_ENABLED === 'true' && !validated.REDIS_URL) {
+    throw new Error('REDIS_URL is required when IDEMPOTENCY_ENABLED=true');
   }
 
   return validated;

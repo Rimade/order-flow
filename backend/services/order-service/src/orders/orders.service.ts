@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
+import { IdempotencyService } from '../idempotency/idempotency.service';
 import { OrderCreatedEvent } from '../kafka/order-created.event';
 import { OutboxService } from '../outbox/outbox.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -11,9 +12,33 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly outboxService: OutboxService,
+    private readonly idempotency: IdempotencyService,
   ) {}
 
-  async create(userId: string, dto: CreateOrderDto) {
+  async create(userId: string, dto: CreateOrderDto, idempotencyKey?: string) {
+    const fingerprint = this.idempotency.fingerprint(dto);
+    const key = idempotencyKey?.trim();
+
+    if (key && this.idempotency.isEnabled()) {
+      const cached = await this.idempotency.begin(userId, key, fingerprint);
+      if (cached !== null) {
+        return cached;
+      }
+
+      try {
+        const created = await this.createOrder(userId, dto);
+        await this.idempotency.complete(userId, key, fingerprint, created);
+        return created;
+      } catch (error) {
+        await this.idempotency.release(userId, key);
+        throw error;
+      }
+    }
+
+    return this.createOrder(userId, dto);
+  }
+
+  private async createOrder(userId: string, dto: CreateOrderDto) {
     const currency = dto.currency ?? 'USD';
     const totalAmount = this.calculateTotal(dto.items);
 

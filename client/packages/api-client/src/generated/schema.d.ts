@@ -330,7 +330,10 @@ export interface operations {
     ordersCreate: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Optional. Same key + same body within TTL returns the original order (201 body). Same key + different body → 422. Concurrent same key → 409. */
+                "Idempotency-Key"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -340,7 +343,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created */
+            /** @description Created (or replay of a previous create with the same Idempotency-Key) */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -348,6 +351,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Order"];
                 };
+            };
+            /** @description Idempotency-Key already in progress */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Idempotency-Key reused with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

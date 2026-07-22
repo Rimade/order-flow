@@ -103,6 +103,16 @@ paths:
       tags: [orders]
       security:
         - bearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: >
+            Optional. Same key + same body within TTL returns the original order (201 body).
+            Same key + different body → 422. Concurrent same key → 409.
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -111,11 +121,15 @@ paths:
               $ref: '#/components/schemas/CreateOrderBody'
       responses:
         '201':
-          description: Created
+          description: Created (or replay of a previous create with the same Idempotency-Key)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+        '409':
+          description: Idempotency-Key already in progress
+        '422':
+          description: Idempotency-Key reused with a different body
   /orders/{id}:
     get:
       operationId: ordersGet

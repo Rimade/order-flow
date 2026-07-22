@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../auth/types/jwt-payload';
@@ -15,8 +25,13 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Req() request: AuthenticatedRequest, @Body() dto: CreateOrderDto) {
-    return this.ordersService.create(request.user.userId, dto);
+  @HttpCode(201)
+  create(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: CreateOrderDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ) {
+    return this.ordersService.create(request.user.userId, dto, idempotencyKey);
   }
 
   @Get()

@@ -7,6 +7,7 @@ import { MetricsModule } from './metrics/metrics.module';
 import { OrdersModule } from './orders/orders.module';
 import { OutboxModule } from './outbox/outbox.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PrismaModule } from './prisma/prisma.module';
       validate: validateEnv,
     }),
     PrismaModule,
+    RedisModule,
     OutboxModule,
     AuthModule,
     HealthModule,
