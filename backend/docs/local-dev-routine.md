@@ -306,7 +306,7 @@ docker compose --profile observability up -d
 | Grafana | <http://localhost:3100> |
 | Prometheus | <http://localhost:9090> |
 
-Подробнее: [observability.md](./observability.md), [metrics.md](./metrics.md).
+Подробнее: [observability.md](./observability.md) (runbook «один заказ → Jaeger»), [metrics.md](./metrics.md), [idempotency.md](./idempotency.md).
 
 Для обычной проверки саги observability **не нужна**.
 

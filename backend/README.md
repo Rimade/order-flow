@@ -36,5 +36,6 @@ docker compose up -d
 - [docs/project-blueprint.md](./docs/project-blueprint.md)
 - [docs/local-dev-routine.md](./docs/local-dev-routine.md)
 - [docs/outbox-pattern.md](./docs/outbox-pattern.md)
-- [docs/observability.md](./docs/observability.md)
+- [docs/idempotency.md](./docs/idempotency.md)
+- [docs/observability.md](./docs/observability.md) — runbook «заказ → Jaeger»
 - [infra/compose/README.md](./infra/compose/README.md)

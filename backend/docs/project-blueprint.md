@@ -308,5 +308,7 @@ Frontend (текущий фокус):
 Backend (параллельно по желанию):
 
 - ~~replay tooling для `dlq.outbox`~~ — `backend/scripts/outbox-replay.ps1` (reset FAILED → PENDING);
+- ~~Idempotency-Key~~ — Redis в order-service, см. [idempotency.md](./idempotency.md);
 - catalog: `CACHE_STORE=redis` в `.env` (по умолчанию `memory`);
-- CI e2e с compose; Idempotency-Key на create order; Swagger → codegen.
+- CI: `.github/workflows/backend-ci.yml` (Nest build + compose postgres/redis); полный saga e2e — локально;
+- Observability runbook: [observability.md](./observability.md).
