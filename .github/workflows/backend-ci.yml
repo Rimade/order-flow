@@ -1,0 +1,76 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  nest-build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - order-service
+          - catalog-service
+    defaults:
+      run:
+        working-directory: backend/services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/services/${{ matrix.service }}/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # prisma generate may need DATABASE_URL at generate time for some setups
+          DATABASE_URL: postgresql://orderflow:orderflow@localhost:5433/orderflow_order
+
+  compose-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start postgres and redis
+        working-directory: backend/infra/compose
+        run: docker compose up -d postgres redis
+
+      - name: Wait for postgres
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec orderflow-postgres pg_isready -U orderflow >/dev/null 2>&1; then
+              echo "postgres ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "postgres not ready"
+          exit 1
+
+      - name: Redis ping
+        run: docker exec orderflow-redis redis-cli ping
+
+      - name: Compose down
+        if: always()
+        working-directory: backend/infra/compose
+        run: docker compose down -v
+
+  # Full Playwright saga needs Nest+Go on the runner — run locally / manual dispatch later.
+  # See client/e2e and backend/docs/local-dev-routine.md
