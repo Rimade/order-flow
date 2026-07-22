@@ -5,6 +5,7 @@ import { CatalogProxyController } from './catalog-proxy.controller';
 import { OrdersProxyController } from './orders-proxy.controller';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
+import { ProxyStreamService } from './proxy-stream.service';
 
 @Module({
   imports: [
@@ -17,6 +18,6 @@ import { ProxyService } from './proxy.service';
     }),
   ],
   controllers: [ProxyController, OrdersProxyController, CatalogProxyController],
-  providers: [ProxyService],
+  providers: [ProxyService, ProxyStreamService],
 })
 export class ProxyModule {}

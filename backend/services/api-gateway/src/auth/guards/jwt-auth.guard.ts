@@ -22,6 +22,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     const request = context.switchToHttp().getRequest<Request>();
 
+    if (
+      request.path.startsWith('/docs') ||
+      request.path === '/docs-json' ||
+      request.path === '/docs-yaml'
+    ) {
+      return true;
+    }
+
     if (PUBLIC_AUTH_PATHS.has(request.path)) {
       return true;
     }

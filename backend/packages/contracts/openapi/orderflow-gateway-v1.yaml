@@ -150,6 +150,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+  /orders/{id}/events:
+    get:
+      operationId: ordersStatusEvents
+      tags: [orders]
+      summary: SSE stream of order status changes until terminal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: text/event-stream with JSON payloads { orderId, status, updatedAt }
+          content:
+            text/event-stream:
+              schema:
+                type: string
 components:
   securitySchemes:
     bearerAuth:

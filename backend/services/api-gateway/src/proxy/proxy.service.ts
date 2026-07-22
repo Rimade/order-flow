@@ -73,7 +73,7 @@ export class ProxyService {
     }
   }
 
-  private getServiceBaseUrl(service: UpstreamService) {
+  getServiceBaseUrl(service: UpstreamService) {
     if (service === 'auth') {
       return this.configService
         .getOrThrow<string>('AUTH_SERVICE_URL')
@@ -95,7 +95,7 @@ export class ProxyService {
     throw new ServiceUnavailableException(`Unknown upstream service: ${service}`);
   }
 
-  private buildForwardHeaders(request: RequestWithUser) {
+  buildForwardHeaders(request: RequestWithUser) {
     const headers: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(request.headers)) {

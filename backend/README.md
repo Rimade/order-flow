@@ -37,5 +37,7 @@ docker compose up -d
 - [docs/local-dev-routine.md](./docs/local-dev-routine.md)
 - [docs/outbox-pattern.md](./docs/outbox-pattern.md)
 - [docs/idempotency.md](./docs/idempotency.md)
+- [docs/openapi.md](./docs/openapi.md) — Swagger UI `/docs` + codegen
+- [docs/order-status-sse.md](./docs/order-status-sse.md)
 - [docs/observability.md](./docs/observability.md) — runbook «заказ → Jaeger»
 - [infra/compose/README.md](./infra/compose/README.md)

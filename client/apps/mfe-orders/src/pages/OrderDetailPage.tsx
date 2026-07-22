@@ -1,4 +1,4 @@
-import { ApiError, api, type OrderStatus } from '@orderflow/api-client';
+import { ApiError, api, watchOrderStatus, type Order, type OrderStatus } from '@orderflow/api-client';
 import {
 	Alert,
 	AlertDescription,
@@ -11,7 +11,8 @@ import {
 	PageHeader,
 	Spinner,
 } from '@orderflow/ui';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 const TERMINAL: OrderStatus[] = ['CONFIRMED', 'CANCELLED', 'FAILED'];
@@ -53,17 +54,48 @@ function StatusExplain({ status }: { status: OrderStatus }) {
 
 export default function OrderDetailPage() {
 	const { id } = useParams<{ id: string }>();
+	const queryClient = useQueryClient();
+	const [usePolling, setUsePolling] = useState(false);
+	const [liveHint, setLiveHint] = useState<'sse' | 'poll' | null>(null);
 
 	const orderQuery = useQuery({
 		queryKey: ['orders', id],
 		queryFn: () => api.orders.get(id!),
 		enabled: Boolean(id),
 		refetchInterval: (query) => {
+			if (!usePolling) return false;
 			const status = query.state.data?.status;
 			if (!status || TERMINAL.includes(status)) return false;
 			return 2000;
 		},
 	});
+
+	useEffect(() => {
+		if (!id) return;
+		const status = orderQuery.data?.status;
+		if (status && TERMINAL.includes(status)) return;
+
+		setLiveHint('sse');
+		const stop = watchOrderStatus(id, {
+			onEvent: (event) => {
+				queryClient.setQueryData<Order>(['orders', id], (prev) =>
+					prev
+						? { ...prev, status: event.status, updatedAt: event.updatedAt }
+						: prev,
+				);
+				void queryClient.invalidateQueries({ queryKey: ['orders', id] });
+			},
+			onError: () => {
+				setUsePolling(true);
+				setLiveHint('poll');
+			},
+			onDone: () => {
+				void queryClient.invalidateQueries({ queryKey: ['orders', id] });
+			},
+		});
+
+		return stop;
+	}, [id, queryClient, orderQuery.data?.status]);
 
 	if (!id) {
 		return (
@@ -104,14 +136,16 @@ export default function OrderDetailPage() {
 
 			<PageHeader
 				title="Детали заказа"
-				description="Статус обновляется автоматически, пока saga не завершится."
+				description="Статус обновляется по SSE; при сбое — polling каждые 2 с."
 				actions={<OrderStatusBadge status={order.status} />}
 			/>
 
 			{isPolling ? (
 				<Alert variant="info">
 					<AlertDescription>
-						Обработка: резерв inventory → оплата → подтверждение (опрос каждые 2 с)
+						Обработка: резерв inventory → оплата → подтверждение
+						{liveHint === 'sse' ? ' (live SSE)' : null}
+						{liveHint === 'poll' ? ' (fallback polling)' : null}
 					</AlertDescription>
 				</Alert>
 			) : (

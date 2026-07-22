@@ -5,6 +5,7 @@
 ## OpenAPI (gateway)
 
 - Спека: [openapi/orderflow-gateway-v1.yaml](./openapi/orderflow-gateway-v1.yaml)
+- Swagger UI (runtime): http://localhost:3000/docs — см. [../../docs/openapi.md](../../docs/openapi.md)
 - Генерация типов для клиента:
 
 ```powershell

@@ -73,6 +73,8 @@ export type Order = components['schemas']['Order'];
 export type Product = components['schemas']['Product'];
 export type CreateOrderItemInput = components['schemas']['CreateOrderItemInput'];
 
+export { watchOrderStatus, type OrderStatusEvent } from './order-status-sse';
+
 export const api = {
 	auth: {
 		register: (email: string, password: string) =>
