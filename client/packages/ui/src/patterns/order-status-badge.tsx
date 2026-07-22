@@ -25,9 +25,25 @@ type OrderStatusBadgeProps = {
 	status: OrderStatus;
 };
 
+const statusPulse: Partial<Record<OrderStatus, boolean>> = {
+	PENDING: true,
+	PAYMENT_PENDING: true,
+};
+
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
+	const pulse = statusPulse[status];
+
 	return (
-		<Badge variant={statusVariant[status]} data-testid="order-status">
+		<Badge variant={statusVariant[status]} data-testid="order-status" className="gap-1.5">
+			{pulse ? (
+				<span
+					className="relative flex h-2 w-2"
+					aria-hidden
+				>
+					<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-40" />
+					<span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
+				</span>
+			) : null}
 			{statusLabel[status]}
 		</Badge>
 	);

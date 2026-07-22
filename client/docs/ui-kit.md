@@ -318,13 +318,13 @@ pnpm ui:add badge
 
 ## 15. Компоненты (актуально)
 
-Реализованы: `Button`, `Input`, `Label`, `Card`, `Badge`, `Alert`, `Spinner`, `Table`, `Dialog`, `Select`, `OrderStatusBadge`.
+Реализованы: `Button`, `Input`, `Label`, `Card`, `Badge`, `Alert`, `Spinner`, `Table`, `Dialog`, `Select`, `OrderStatusBadge`, `PageHeader`, `AuthShell`.
 
-`Dialog` + `Select` используются в `mfe-catalog` (оформление с выбором количества).
+Статусы заказа: цветные бейджи + пульс для `PENDING` / `PAYMENT_PENDING`.
 
 ## 16. Следующий шаг
 
-- Vitest для UI, Storybook (опционально).
-- Логотип и favicon в shell.
+- Favicon, иллюстрации в `AuthShell` (опционально).
+- Storybook / Vitest.
 
 Вопросы и изменения API компонентов — через PR + короткая запись в CHANGELOG пакета `ui`.

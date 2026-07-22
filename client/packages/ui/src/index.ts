@@ -26,3 +26,5 @@ export {
 	SelectValue,
 } from './components/select';
 export { OrderStatusBadge, type OrderStatus } from './patterns/order-status-badge';
+export { PageHeader } from './patterns/page-header';
+export { AuthShell } from './patterns/auth-shell';

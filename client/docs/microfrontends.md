@@ -186,6 +186,8 @@ Authorization: Bearer <accessToken>
 
 `sku-4` и несуществующие SKU → `CANCELLED` (негативный сценарий для UI).
 
+В UI на странице заказов: **«Заказ sku-1 (OK)»** и **«Заказ sku-4 (отмена)»**. На детали заказа — пояснение терминального статуса.
+
 ---
 
 ## 8. Module Federation (кратко)
@@ -279,6 +281,13 @@ Refresh: `POST /api/v1/auth/refresh` при 401 (опционально, фаз�
 4. [x] Feature flags (mock): `VITE_CATALOG_ENABLED` → `features.catalog`
 5. (Опционально) Rspack вместо Vite для сравнения скорости сборки
 
+### Фаза 4 — UI polish (в работе)
+
+1. [x] Inter, токены, тени, цветные статусы
+2. [x] `AuthShell`, `PageHeader`, шапка с активными пунктами меню
+3. [ ] Storybook / Vitest (опционально)
+4. [ ] CI: e2e job с compose
+
 ---
 
 ## 12. Локальная разработка
@@ -335,4 +344,4 @@ Remotes публикуются как статика; shell в runtime знае�
 - [ ] В браузере: login → заказ sku-1 → **CONFIRMED**
 - [ ] (опционально) каталог → оформить → заказ → **CONFIRMED**
 
-**Следующий шаг:** CI e2e с compose, Vitest для UI, Rspack (опционально).
+**Следующий шаг:** CI e2e с compose, Storybook (опционально).

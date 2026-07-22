@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import './tokens.css';
 
@@ -19,5 +20,15 @@
 }
 
 body {
-  @apply bg-of-background text-of-foreground antialiased;
+  @apply min-h-screen bg-of-background font-sans text-of-foreground antialiased;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-image: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    hsl(var(--of-color-primary) / 0.08),
+    transparent
+  );
+}
+
+::selection {
+  background: hsl(var(--of-color-primary) / 0.2);
 }

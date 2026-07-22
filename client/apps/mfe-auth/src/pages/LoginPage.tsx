@@ -4,12 +4,10 @@ import { setAuthSession } from '@orderflow/auth';
 import {
 	Alert,
 	AlertDescription,
+	AuthShell,
 	Button,
 	Card,
 	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
 	Input,
 	Label,
 } from '@orderflow/ui';
@@ -49,13 +47,9 @@ export default function LoginPage() {
 	}
 
 	return (
-		<div className="flex min-h-[70vh] items-center justify-center">
-			<Card className="w-full max-w-md">
-				<CardHeader>
-					<CardTitle>Вход</CardTitle>
-					<CardDescription>API: gateway :3000</CardDescription>
-				</CardHeader>
-				<CardContent>
+		<AuthShell title="Вход" subtitle="Войдите в аккаунт, чтобы управлять заказами.">
+			<Card>
+				<CardContent className="pt-6">
 					<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
 						{error ? (
 							<Alert variant="danger">
@@ -64,47 +58,46 @@ export default function LoginPage() {
 						) : null}
 						<div className="space-y-2">
 							<Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                data-testid="login-email"
-                {...register('email')}
-              />
+							<Input
+								id="email"
+								type="email"
+								autoComplete="email"
+								data-testid="login-email"
+								{...register('email')}
+							/>
 							{errors.email ? (
 								<p className="text-sm text-of-danger">{errors.email.message}</p>
 							) : null}
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="password">Пароль</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                data-testid="login-password"
-                {...register('password')}
-              />
+							<Input
+								id="password"
+								type="password"
+								autoComplete="current-password"
+								data-testid="login-password"
+								{...register('password')}
+							/>
 							{errors.password ? (
 								<p className="text-sm text-of-danger">{errors.password.message}</p>
 							) : null}
 						</div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-              data-testid="login-submit"
-            >
-              {isSubmitting ? 'Вход…' : 'Войти'}
-            </Button>
+						<Button
+							type="submit"
+							className="w-full"
+							disabled={isSubmitting}
+							data-testid="login-submit">
+							{isSubmitting ? 'Вход…' : 'Войти'}
+						</Button>
 					</form>
-					<p className="mt-4 text-center text-sm text-of-muted-foreground">
+					<p className="mt-6 text-center text-sm text-of-muted-foreground">
 						Нет аккаунта?{' '}
-						<Link to="/register" className="text-of-primary hover:underline">
+						<Link to="/register" className="font-medium text-of-primary hover:underline">
 							Регистрация
 						</Link>
 					</p>
 				</CardContent>
 			</Card>
-		</div>
+		</AuthShell>
 	);
 }
