@@ -1,5 +1,10 @@
-import { clearAuthSession, getAuthHeaders } from '@orderflow/auth';
-import type { AuthTokens } from '@orderflow/auth';
+import {
+	clearAuthSession,
+	getAuthHeaders,
+	getRefreshToken,
+	setAuthSession,
+	type AuthTokens,
+} from '@orderflow/auth';
 import { apiBaseUrl } from '@orderflow/config';
 import type { components } from './generated/schema';
 
@@ -17,13 +22,32 @@ export class ApiError extends Error {
 type RequestOptions = Omit<RequestInit, 'body'> & {
 	body?: unknown;
 	auth?: boolean;
+	/** Internal: skip refresh-on-401 (used by refresh itself) */
+	skipRefresh?: boolean;
 };
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+let refreshInFlight: Promise<boolean> | null = null;
+
+function parseErrorMessage(data: unknown, fallback: string): string {
+	if (
+		typeof data === 'object' &&
+		data !== null &&
+		'message' in data &&
+		(typeof (data as { message: unknown }).message === 'string' ||
+			Array.isArray((data as { message: unknown }).message))
+	) {
+		return Array.isArray((data as { message: string[] }).message)
+			? (data as { message: string[] }).message.join(', ')
+			: String((data as { message: string }).message);
+	}
+	return fallback;
+}
+
+async function rawFetch(path: string, options: RequestOptions = {}): Promise<Response> {
 	const { body, auth = false, headers, ...rest } = options;
 	const url = `${apiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`;
 
-	const response = await fetch(url, {
+	return fetch(url, {
 		...rest,
 		headers: {
 			'Content-Type': 'application/json',
@@ -32,6 +56,59 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 		},
 		body: body !== undefined ? JSON.stringify(body) : undefined,
 	});
+}
+
+async function tryRefreshSession(): Promise<boolean> {
+	if (refreshInFlight) {
+		return refreshInFlight;
+	}
+
+	refreshInFlight = (async () => {
+		const refreshToken = getRefreshToken();
+		if (!refreshToken) {
+			return false;
+		}
+
+		try {
+			const response = await rawFetch('/api/v1/auth/refresh', {
+				method: 'POST',
+				body: { refreshToken },
+				skipRefresh: true,
+			});
+			const text = await response.text();
+			let data: unknown;
+			if (text) {
+				try {
+					data = JSON.parse(text) as unknown;
+				} catch {
+					data = text;
+				}
+			}
+			if (!response.ok) {
+				return false;
+			}
+			setAuthSession(data as AuthTokens);
+			return true;
+		} catch {
+			return false;
+		} finally {
+			refreshInFlight = null;
+		}
+	})();
+
+	return refreshInFlight;
+}
+
+function redirectToLogin() {
+	clearAuthSession();
+	if (typeof window !== 'undefined') {
+		window.location.assign('/login');
+	}
+}
+
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+	const { auth = false, skipRefresh = false, ...rest } = options;
+	const response = await rawFetch(path, { ...rest, auth });
 
 	const text = await response.text();
 	let data: unknown = undefined;
@@ -43,25 +120,20 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 		}
 	}
 
-	if (response.status === 401 && auth) {
-		clearAuthSession();
-		if (typeof window !== 'undefined') {
-			window.location.assign('/login');
+	if (response.status === 401 && auth && !skipRefresh) {
+		const refreshed = await tryRefreshSession();
+		if (refreshed) {
+			return request<T>(path, { ...options, skipRefresh: true });
 		}
+		redirectToLogin();
 	}
 
 	if (!response.ok) {
-		const message =
-			typeof data === 'object' &&
-			data !== null &&
-			'message' in data &&
-			(typeof (data as { message: unknown }).message === 'string' ||
-				Array.isArray((data as { message: unknown }).message))
-				? Array.isArray((data as { message: string[] }).message)
-					? (data as { message: string[] }).message.join(', ')
-					: String((data as { message: string }).message)
-				: response.statusText || 'Request failed';
-		throw new ApiError(response.status, message, data);
+		throw new ApiError(
+			response.status,
+			parseErrorMessage(data, response.statusText || 'Request failed'),
+			data,
+		);
 	}
 
 	return data as T;
@@ -87,6 +159,12 @@ export const api = {
 			request<AuthTokens>('/api/v1/auth/login', {
 				method: 'POST',
 				body: { email, password },
+			}),
+		refresh: (refreshToken: string) =>
+			request<AuthTokens>('/api/v1/auth/refresh', {
+				method: 'POST',
+				body: { refreshToken },
+				skipRefresh: true,
 			}),
 		me: () =>
 			request<{ id: string; email: string }>('/api/v1/auth/me', {

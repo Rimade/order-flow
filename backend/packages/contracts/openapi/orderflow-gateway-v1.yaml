@@ -53,6 +53,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserProfile'
+  /auth/refresh:
+    post:
+      operationId: authRefresh
+      tags: [auth]
+      summary: Rotate refresh token and issue a new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '401':
+          description: Invalid or expired refresh token
   /catalog/products:
     get:
       operationId: catalogListProducts
@@ -248,10 +268,18 @@ components:
           type: string
     AuthTokens:
       type: object
-      required: [accessToken, refreshToken]
+      required: [accessToken, refreshToken, user]
       properties:
         accessToken:
           type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserProfile'
+    RefreshBody:
+      type: object
+      required: [refreshToken]
+      properties:
         refreshToken:
           type: string
     UserProfile:
