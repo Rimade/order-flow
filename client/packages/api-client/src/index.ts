@@ -166,6 +166,12 @@ export const api = {
 				body: { refreshToken },
 				skipRefresh: true,
 			}),
+		logout: (refreshToken: string) =>
+			request<{ ok: true }>('/api/v1/auth/logout', {
+				method: 'POST',
+				body: { refreshToken },
+				skipRefresh: true,
+			}),
 		me: () =>
 			request<{ id: string; email: string }>('/api/v1/auth/me', {
 				method: 'GET',

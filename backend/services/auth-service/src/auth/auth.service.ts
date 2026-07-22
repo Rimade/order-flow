@@ -93,6 +93,16 @@ export class AuthService {
     return this.issueTokens(storedToken.user.id, storedToken.user.email);
   }
 
+  async logout(dto: RefreshTokenDto): Promise<{ ok: true }> {
+    const tokenHash = this.hashRefreshToken(dto.refreshToken);
+
+    await this.prisma.refreshToken.deleteMany({
+      where: { tokenHash },
+    });
+
+    return { ok: true };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

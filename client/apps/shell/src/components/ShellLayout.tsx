@@ -1,4 +1,4 @@
-import { clearAuthSession, getStoredUser } from '@orderflow/auth';
+import { getStoredUser, logoutSession } from '@orderflow/auth';
 import { features } from '@orderflow/config';
 import { Button } from '@orderflow/ui';
 import type { ReactNode } from 'react';
@@ -21,8 +21,8 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 	const user = getStoredUser();
 	const initial = user?.email?.charAt(0).toUpperCase() ?? '?';
 
-	function logout() {
-		clearAuthSession();
+	async function logout() {
+		await logoutSession();
 		navigate('/login', { replace: true });
 	}
 
@@ -65,7 +65,7 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 								</span>
 							</div>
 						) : null}
-						<Button type="button" variant="outline" size="sm" onClick={logout}>
+						<Button type="button" variant="outline" size="sm" onClick={() => void logout()}>
 							Выйти
 						</Button>
 					</div>

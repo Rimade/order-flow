@@ -73,6 +73,28 @@ paths:
                 $ref: '#/components/schemas/AuthTokens'
         '401':
           description: Invalid or expired refresh token
+  /auth/logout:
+    post:
+      operationId: authLogout
+      tags: [auth]
+      summary: Revoke refresh token (idempotent)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean
   /catalog/products:
     get:
       operationId: catalogListProducts

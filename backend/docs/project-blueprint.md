@@ -312,7 +312,7 @@ Backend (параллельно по желанию):
 - ~~Swagger UI~~ — gateway `/docs` из contracts YAML, [openapi.md](./openapi.md);
 - ~~SSE статуса заказа~~ — [order-status-sse.md](./order-status-sse.md);
 - ~~Outbox ops UI~~ — [outbox-ops-ui.md](./outbox-ops-ui.md) + CLI replay;
-- ~~Access/refresh в клиенте~~ — [auth-refresh.md](./auth-refresh.md);
-- catalog: `CACHE_STORE=redis` в `.env` (по умолчанию `memory`);
+- ~~Access/refresh в клиенте~~ — [auth-refresh.md](./auth-refresh.md) (+ logout revoke);
+- ~~Catalog Redis cache~~ — [catalog-cache.md](./catalog-cache.md) (default `CACHE_STORE=redis`);
 - CI: `.github/workflows/backend-ci.yml` (Nest build + compose postgres/redis); полный saga e2e — локально;
 - Observability runbook: [observability.md](./observability.md).

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -28,6 +36,13 @@ export class AuthController {
   @Post('refresh')
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto);
+  }
+
+  /** Revoke refresh token (idempotent). Access JWT expires on its own. */
+  @Post('logout')
+  @HttpCode(200)
+  logout(@Body() dto: RefreshTokenDto) {
+    return this.authService.logout(dto);
   }
 
   @UseGuards(JwtAuthGuard)

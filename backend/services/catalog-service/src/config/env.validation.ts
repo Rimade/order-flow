@@ -34,7 +34,12 @@ class EnvironmentVariables {
 }
 
 export function validateEnv(config: Record<string, unknown>) {
-	const validated = plainToInstance(EnvironmentVariables, config, {
+	const withDefaults = {
+		CACHE_STORE: 'redis',
+		...config,
+	};
+
+	const validated = plainToInstance(EnvironmentVariables, withDefaults, {
 		enableImplicitConversion: true,
 	});
 

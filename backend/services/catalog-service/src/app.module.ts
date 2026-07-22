@@ -17,7 +17,7 @@ import { ProductsModule } from './products/products.module';
 			inject: [ConfigService],
 			useFactory: async (configService: ConfigService) => {
 				const ttl = configService.get<number>('CACHE_TTL_MS', 60_000);
-				const store = configService.get<string>('CACHE_STORE', 'memory');
+				const store = configService.get<string>('CACHE_STORE', 'redis');
 
 				if (store === 'redis') {
 					const { createKeyv } = await import('@keyv/redis');

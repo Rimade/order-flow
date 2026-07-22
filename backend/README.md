@@ -41,5 +41,6 @@ docker compose up -d
 - [docs/order-status-sse.md](./docs/order-status-sse.md)
 - [docs/outbox-ops-ui.md](./docs/outbox-ops-ui.md)
 - [docs/auth-refresh.md](./docs/auth-refresh.md)
+- [docs/catalog-cache.md](./docs/catalog-cache.md)
 - [docs/observability.md](./docs/observability.md) — runbook «заказ → Jaeger»
 - [infra/compose/README.md](./infra/compose/README.md)

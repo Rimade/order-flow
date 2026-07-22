@@ -1,3 +1,5 @@
+import { apiBaseUrl } from '@orderflow/config';
+
 export const ACCESS_TOKEN_KEY = 'orderflow.accessToken';
 export const REFRESH_TOKEN_KEY = 'orderflow.refreshToken';
 export const USER_KEY = 'orderflow.user';
@@ -51,4 +53,21 @@ export function getAuthHeaders(): HeadersInit {
 	const token = getAccessToken();
 	if (!token) return {};
 	return { Authorization: `Bearer ${token}` };
+}
+
+/** Revoke refresh on server, then clear local session. Safe if offline. */
+export async function logoutSession(): Promise<void> {
+	const refreshToken = getRefreshToken();
+	if (refreshToken) {
+		try {
+			await fetch(`${apiBaseUrl}/api/v1/auth/logout`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ refreshToken }),
+			});
+		} catch {
+			// ignore network errors — still clear locally
+		}
+	}
+	clearAuthSession();
 }
