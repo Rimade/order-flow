@@ -13,7 +13,9 @@ function Test-Health($Name, $Url) {
 Test-Health "auth-service" "http://localhost:3001/health"
 Test-Health "api-gateway" "http://localhost:3000/health"
 Test-Health "order-service" "http://localhost:3002/health"
+Test-Health "catalog-service" "http://localhost:3006/health"
 
 Write-Host ""
 Write-Host "Kafka UI: http://localhost:8080"
 Write-Host "RabbitMQ UI: http://localhost:15672 (orderflow / orderflow)"
+Write-Host "Outbox replay: .\backend\scripts\outbox-replay.ps1 -Service order -List"

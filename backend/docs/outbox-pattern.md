@@ -46,7 +46,26 @@ API / Consumer handler
 
 После исчерпания retry (`OUTBOX_MAX_RETRIES`) запись получает статус `FAILED`, relay публикует envelope `outbox.dead_letter` в Kafka-топик `dlq.outbox` (env `OUTBOX_DLQ_TOPIC`).
 
-Сообщение остаётся в БД для аудита; DLQ — для алертинга и ручного/replay tooling.
+Сообщение остаётся в БД для аудита; DLQ — для алертинга и replay tooling.
+
+### Replay FAILED outbox (локально)
+
+Самый безопасный путь — **вернуть строку в `PENDING`**, чтобы существующий relay опубликовал снова (не писать второй publisher).
+
+```powershell
+# Список FAILED в order / inventory / payment
+.\backend\scripts\outbox-replay.ps1 -Service order -List
+.\backend\scripts\outbox-replay.ps1 -Service inventory -List
+.\backend\scripts\outbox-replay.ps1 -Service payment -List
+
+# Посмотреть, что сделает replay (без UPDATE)
+.\backend\scripts\outbox-replay.ps1 -Service order -Id <uuid> -DryRun
+
+# Сбросить FAILED → PENDING (нужен контейнер orderflow-postgres)
+.\backend\scripts\outbox-replay.ps1 -Service order -Id <uuid>
+```
+
+После `-Id` оставь сервис запущенным — relay подхватит `PENDING` на следующем poll.
 
 ## Saga compensation
 
@@ -55,5 +74,5 @@ API / Consumer handler
 ## Следующий уровень (опционально)
 
 - Debezium CDC из outbox table вместо polling relay;
-- replay API для сообщений из `dlq.outbox`;
+- replay из Kafka `dlq.outbox` (сейчас — reset в БД);
 - метрики: lag outbox, publish latency, retry rate.

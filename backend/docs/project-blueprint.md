@@ -307,5 +307,6 @@ Frontend (текущий фокус):
 
 Backend (параллельно по желанию):
 
-- replay tooling для `dlq.outbox`;
-- catalog: `CACHE_STORE=redis` в `.env` (по умолчанию `memory`).
+- ~~replay tooling для `dlq.outbox`~~ — `backend/scripts/outbox-replay.ps1` (reset FAILED → PENDING);
+- catalog: `CACHE_STORE=redis` в `.env` (по умолчанию `memory`);
+- CI e2e с compose; Idempotency-Key на create order; Swagger → codegen.

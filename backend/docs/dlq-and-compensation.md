@@ -24,3 +24,13 @@ Inventory использует отдельный consumer group, чтобы н�
 1. `PAYMENT_SIMULATE_SUCCESS=false` в payment-service.
 2. Создай заказ с валидным SKU.
 3. Убедись: заказ `FAILED`, в inventory `reservations.status = RELEASED`, остатки восстановлены.
+
+## Локальная проверка CANCELLED (без оплаты)
+
+1. В UI: **Заказы → «Заказ sku-4 (отмена)»** (или каталог → sku-4).
+2. Inventory не знает `sku-4` → `inventory.rejected` → заказ **Отменён**.
+3. E2E: `client/e2e/order-reject.spec.ts` (`pnpm e2e`).
+
+## Replay FAILED outbox
+
+См. [outbox-pattern.md](./outbox-pattern.md) — скрипт `backend/scripts/outbox-replay.ps1`.
