@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
+// Remotes: preview после vite build — remoteEntry в /assets/ (originjs не генерит его в vite dev)
 const mfeAuthRemote =
 	process.env.VITE_MFE_AUTH_URL ?? 'http://localhost:4101/assets/remoteEntry.js';
 const mfeOrdersRemote =

@@ -194,10 +194,12 @@ Authorization: Bearer <accessToken>
 
 ```ts
 remotes: {
-  mfe_auth: 'mfe_auth@http://localhost:4101/remoteEntry.js',
-  mfe_orders: 'mfe_orders@http://localhost:4102/remoteEntry.js',
+  mfe_auth: 'mfe_auth@http://localhost:4101/assets/remoteEntry.js',
+  mfe_orders: 'mfe_orders@http://localhost:4102/assets/remoteEntry.js',
 }
 ```
+
+**Локальная разработка:** remotes — `vite build && concurrently "vite build --watch" "vite preview"`; host (shell) — `vite dev`. В `vite dev` у remote **нет** `remoteEntry.js` (Vite отдаёт index.html → ошибка federation).
 
 **Remote** экспортирует корневой модуль, например `./App`:
 

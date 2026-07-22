@@ -33,7 +33,11 @@ pnpm dev
 
 1. Открой **<http://localhost:4000>** — регистрация → заказ (sku-1) → деталь с polling до `CONFIRMED`.
 
-`pnpm dev` через Turborepo поднимает **shell** и все remotes (:4101–4103) параллельно.
+`pnpm dev` поднимает **shell** (:4000, vite dev) и remotes (:4101–4103).
+
+Remotes работают через **`vite build --watch` + `vite preview`** — так требует `@originjs/vite-plugin-federation` (в обычном `vite dev` нет настоящего `remoteEntry.js`). После старта подожди **20–40 с**, пока remotes соберутся, затем открывай :4000.
+
+Проверка: <http://localhost:4101/assets/remoteEntry.js> — должен быть **JavaScript**, не HTML.
 
 Флаг `VITE_CATALOG_ENABLED=false` скрывает каталог в меню и маршрутах.
 
