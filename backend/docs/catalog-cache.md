@@ -25,6 +25,8 @@ CACHE_STORE=memory
 
 Через gateway write требует JWT; GET остаётся публичным.
 
+UI: `mfe-catalog` — «Добавить товар» / «Редактировать» (`ProductFormDialog`), после успеха инвалидирует React Query list/detail.
+
 ```powershell
 # login → token
 curl -X POST http://localhost:3000/api/v1/catalog/products `

@@ -1,4 +1,5 @@
 import { ApiError, api } from '@orderflow/api-client';
+import { isAuthenticated } from '@orderflow/auth';
 import {
 	Alert,
 	AlertDescription,
@@ -23,10 +24,11 @@ import {
 	SelectValue,
 	Spinner,
 } from '@orderflow/ui';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { CatalogDraftItem } from '../catalog-draft';
+import { ProductFormDialog } from '../components/ProductFormDialog';
 
 export const CATALOG_DRAFT_STORAGE_KEY = 'orderflow.catalogDraft';
 
@@ -35,8 +37,11 @@ const QUANTITY_OPTIONS = ['1', '2', '3', '4', '5'] as const;
 export default function ProductDetailPage() {
 	const { sku } = useParams<{ sku: string }>();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [quantity, setQuantity] = useState('1');
-	const [dialogOpen, setDialogOpen] = useState(false);
+	const [checkoutOpen, setCheckoutOpen] = useState(false);
+	const [editOpen, setEditOpen] = useState(false);
+	const canWrite = isAuthenticated();
 
 	const productQuery = useQuery({
 		queryKey: ['catalog', 'product', sku],
@@ -56,7 +61,7 @@ export default function ProductDetailPage() {
 		};
 
 		sessionStorage.setItem(CATALOG_DRAFT_STORAGE_KEY, JSON.stringify(draft));
-		setDialogOpen(false);
+		setCheckoutOpen(false);
 		navigate('/orders');
 	}
 
@@ -90,11 +95,23 @@ export default function ProductDetailPage() {
 
 	return (
 		<div className="space-y-6">
-			<Link to="/catalog">
-				<Button type="button" variant="ghost" size="sm">
-					← Каталог
-				</Button>
-			</Link>
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<Link to="/catalog">
+					<Button type="button" variant="ghost" size="sm">
+						← Каталог
+					</Button>
+				</Link>
+				{canWrite ? (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						data-testid="catalog-edit-open"
+						onClick={() => setEditOpen(true)}>
+						Редактировать
+					</Button>
+				) : null}
+			</div>
 
 			<Card>
 				<CardHeader>
@@ -105,11 +122,14 @@ export default function ProductDetailPage() {
 					{product.description ? (
 						<p className="text-sm text-of-muted-foreground">{product.description}</p>
 					) : null}
+					{product.category ? (
+						<p className="text-sm text-of-muted-foreground">Категория: {product.category}</p>
+					) : null}
 					<p className="text-xl font-semibold">
 						{product.price} {product.currency}
 					</p>
 
-					<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+					<Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
 						<DialogTrigger asChild>
 							<Button type="button" data-testid="catalog-checkout-open">
 								Оформить заказ
@@ -151,6 +171,19 @@ export default function ProductDetailPage() {
 					</Dialog>
 				</CardContent>
 			</Card>
+
+			<ProductFormDialog
+				open={editOpen}
+				onOpenChange={setEditOpen}
+				mode="edit"
+				product={product}
+				onSuccess={(updated) => {
+					void queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] });
+					void queryClient.invalidateQueries({
+						queryKey: ['catalog', 'product', updated.sku],
+					});
+				}}
+			/>
 		</div>
 	);
 }
