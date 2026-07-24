@@ -27,9 +27,22 @@ docker compose --profile observability up -d
 | catalog-service | :3006 |
 | analytics-service | :3007 |
 
-Метрики: `http_requests_total`, `http_request_duration_seconds` + default process metrics.
-Analytics также отдаёт `analytics_events_processed_total` / `analytics_events_skipped_total`.
+## HTTP
+
+`http_requests_total`, `http_request_duration_seconds` + process defaults.
+
+## Бизнес-метрики (saga)
+
+| Метрика | Сервис |
+| ------- | ------ |
+| `orders_created_total` | order-service |
+| `orders_status_transitions_total{status}` | order-service |
+| `inventory_reservations_total{result}` | inventory (`reserved` / `rejected`) |
+| `inventory_compensations_total` | inventory |
+| `payments_total{result}` | payment (`succeeded` / `failed`) |
+| `analytics_events_processed_total` | analytics |
+| `analytics_events_skipped_total` | analytics |
 
 ## Grafana
 
-После старта открой дашборд **OrderFlow Overview** (папка OrderFlow) — rate и p95 группируются по label `service`.
+Дашборд **OrderFlow Overview**: HTTP rate/p95 + orders/inventory/payments panels.

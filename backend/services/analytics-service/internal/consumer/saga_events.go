@@ -28,9 +28,11 @@ func NewSagaEventsConsumer(
 ) *SagaEventsConsumer {
 	readers := make([]*kafka.Reader, 0, len(cfg.Topics()))
 	for _, topic := range cfg.Topics() {
+		// Separate group per topic — avoids kafka-go multi-topic same-group pitfalls in one process
+		groupID := cfg.KafkaConsumerGroup + "." + topic
 		readers = append(readers, kafka.NewReader(kafka.ReaderConfig{
 			Brokers:        cfg.KafkaBrokers,
-			GroupID:        cfg.KafkaConsumerGroup,
+			GroupID:        groupID,
 			Topic:          topic,
 			MinBytes:       1,
 			MaxBytes:       10e6,
@@ -46,7 +48,10 @@ func NewSagaEventsConsumer(
 }
 
 func (c *SagaEventsConsumer) Run(ctx context.Context) error {
-	errCh := make(chan error, len(c.readers))
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	errCh := make(chan error, 1)
 	var wg sync.WaitGroup
 
 	for _, reader := range c.readers {
@@ -54,24 +59,21 @@ func (c *SagaEventsConsumer) Run(ctx context.Context) error {
 		go func(r *kafka.Reader) {
 			defer wg.Done()
 			if err := c.loop(ctx, r); err != nil {
-				errCh <- err
+				select {
+				case errCh <- err:
+				default:
+				}
+				cancel()
 			}
 		}(reader)
 	}
 
-	done := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(done)
-	}()
+	wg.Wait()
 
 	select {
-	case <-ctx.Done():
-		<-done
-		return nil
 	case err := <-errCh:
 		return err
-	case <-done:
+	default:
 		return nil
 	}
 }

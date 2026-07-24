@@ -33,6 +33,8 @@ curl "http://localhost:3007/api/v1/analytics/orders-by-day?days=7"
 
 Prometheus scrape: `host.docker.internal:3007` (profile `observability`).
 
-## Запуск
+Если volume Postgres уже был создан **до** появления `orderflow_analytics`, создай БД вручную:
 
-См. `backend/services/analytics-service/README.md`.
+```sql
+CREATE DATABASE orderflow_analytics;
+```

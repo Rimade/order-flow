@@ -303,7 +303,7 @@ Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и ком
 
 1. **GraphQL BFF на gateway** — read-only `order(id)` + catalog enrichment ✅; дальше опционально `me.orders`. См. [graphql-bff.md](./graphql-bff.md).
 2. **`analytics-service` (Go)** ✅ — Kafka → агрегаты + HTTP `:3007`; [analytics.md](./analytics.md).
-3. **Бизнес-метрики** — дотянуть counters в order/inventory/payment (частично уже в analytics).
+3. **Бизнес-метрики** ✅ — order/inventory/payment counters + Grafana panels; [metrics.md](./metrics.md).
 4. **CI глубже** — `go build` + contract smoke; полный Playwright saga — локально.
 5. **Failure/idempotency тесты** — payment-fail → compensation; duplicate Idempotency-Key.
 6. **Catalog write + cache invalidation** — учебный admin/seed path.

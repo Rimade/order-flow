@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"orderflow/payment-service/internal/config"
 	"orderflow/payment-service/internal/domain"
+	"orderflow/payment-service/internal/metrics"
 	"orderflow/payment-service/internal/producer"
 	"orderflow/payment-service/internal/rabbitmq"
 	"orderflow/payment-service/internal/repository"
@@ -106,6 +107,7 @@ func (s *PaymentService) processSucceeded(
 		return err
 	}
 
+	metrics.PaymentsTotal.WithLabelValues("succeeded").Inc()
 	s.logger.Info("payment recorded (outbox)", "orderId", event.Data.OrderID, "paymentId", paymentID)
 	return nil
 }
@@ -151,6 +153,7 @@ func (s *PaymentService) processFailed(
 		return err
 	}
 
+	metrics.PaymentsTotal.WithLabelValues("failed").Inc()
 	s.logger.Warn("payment failed (outbox)", "orderId", event.Data.OrderID, "paymentId", createdPaymentID)
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 
 	"orderflow/inventory-service/internal/config"
 	"orderflow/inventory-service/internal/domain"
+	"orderflow/inventory-service/internal/metrics"
 	"orderflow/inventory-service/internal/repository"
 )
 
@@ -72,16 +73,22 @@ func (s *ReservationService) HandleOrderCreated(ctx context.Context, payload []b
 			"error", err,
 		)
 
-		return s.repo.RecordRejectionWithOutbox(
+		if rejectErr := s.repo.RecordRejectionWithOutbox(
 			ctx,
 			event.EventID,
 			event.Data.OrderID,
 			reason,
 			productID,
 			s.cfg.KafkaInventoryRejectedTopic,
-		)
+		); rejectErr != nil {
+			return rejectErr
+		}
+
+		metrics.ReservationsTotal.WithLabelValues("rejected").Inc()
+		return nil
 	}
 
+	metrics.ReservationsTotal.WithLabelValues("reserved").Inc()
 	s.logger.Info(
 		"inventory reserved (outbox)",
 		"orderId", event.Data.OrderID,

@@ -28,7 +28,6 @@ func Load() (Config, error) {
 	_ = godotenv.Load()
 
 	port := getenv("PORT", "3003")
-	fmt.Println(port, "<<<<")
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		return Config{}, fmt.Errorf("DATABASE_URL is required")

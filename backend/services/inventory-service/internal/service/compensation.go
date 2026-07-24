@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"orderflow/inventory-service/internal/domain"
+	"orderflow/inventory-service/internal/metrics"
 	"orderflow/inventory-service/internal/repository"
 )
 
@@ -47,6 +48,7 @@ func (s *CompensationService) HandlePaymentFailed(ctx context.Context, payload [
 		return err
 	}
 
+	metrics.CompensationsTotal.Inc()
 	s.logger.Info(
 		"inventory compensation completed",
 		"orderId", event.Data.OrderID,

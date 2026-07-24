@@ -14,6 +14,7 @@ import {
   PaymentSucceededEvent,
 } from '../kafka/events/payment.events';
 import { PrismaService } from '../prisma/prisma.service';
+import { ordersStatusTransitionsTotal } from '../metrics/metrics.registry';
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: [
@@ -117,6 +118,11 @@ export class OrderLifecycleService {
         data: { eventId, eventType },
       }),
     ]);
+
+    ordersStatusTransitionsTotal.inc({
+      service: 'order-service',
+      status: targetStatus,
+    });
 
     this.logger.log(
       `order ${orderId} transitioned ${order.status} -> ${targetStatus} (${eventType})`,

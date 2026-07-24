@@ -42,12 +42,14 @@ func (s *AnalyticsService) HandleMessage(ctx context.Context, payload []byte) er
 	var envelope domain.Envelope
 	if err := json.Unmarshal(payload, &envelope); err != nil {
 		eventsSkipped.WithLabelValues("bad_json").Inc()
-		return fmt.Errorf("unmarshal envelope: %w", err)
+		s.logger.Error("skip bad json payload", "error", err)
+		return nil // permanent — do not block partition
 	}
 
 	if envelope.EventID == "" || envelope.EventType == "" {
 		eventsSkipped.WithLabelValues("missing_fields").Inc()
-		return fmt.Errorf("eventId and eventType are required")
+		s.logger.Error("skip event without eventId/eventType")
+		return nil
 	}
 
 	mappedStatus, ok := domain.MapEventTypeToStatus(envelope.EventType)
@@ -65,11 +67,13 @@ func (s *AnalyticsService) HandleMessage(ctx context.Context, payload []byte) er
 	orderID, amount, currency, err := extractFields(envelope.EventType, envelope.Data)
 	if err != nil {
 		eventsSkipped.WithLabelValues("bad_data").Inc()
-		return err
+		s.logger.Error("skip bad event data", "eventType", envelope.EventType, "error", err)
+		return nil
 	}
 	if orderID == "" {
 		eventsSkipped.WithLabelValues("missing_order_id").Inc()
-		return fmt.Errorf("orderId missing for %s", envelope.EventType)
+		s.logger.Error("skip event without orderId", "eventType", envelope.EventType)
+		return nil
 	}
 
 	recorded, err := s.repo.RecordEvent(ctx, repository.RecordEventInput{
@@ -82,7 +86,7 @@ func (s *AnalyticsService) HandleMessage(ctx context.Context, payload []byte) er
 		Currency:     currency,
 	})
 	if err != nil {
-		return err
+		return err // transient (DB) — retry without commit
 	}
 
 	if !recorded {

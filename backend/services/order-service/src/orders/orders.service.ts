@@ -6,6 +6,9 @@ import { OrderCreatedEvent } from '../kafka/order-created.event';
 import { OutboxService } from '../outbox/outbox.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import {
+  ordersCreatedTotal,
+} from '../metrics/metrics.registry';
 
 @Injectable()
 export class OrdersService {
@@ -86,6 +89,7 @@ export class OrdersService {
       return created;
     });
 
+    ordersCreatedTotal.inc({ service: 'order-service' });
     return this.toOrderResponse(order);
   }
 

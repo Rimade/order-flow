@@ -33,6 +33,42 @@
           "legendFormat": "{{service}}"
         }
       ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "title": "Orders created / status transitions",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(orders_created_total[1m]))",
+          "legendFormat": "created"
+        },
+        {
+          "expr": "sum(rate(orders_status_transitions_total[1m])) by (status)",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "title": "Inventory / payments",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(inventory_reservations_total[1m])) by (result)",
+          "legendFormat": "inventory {{result}}"
+        },
+        {
+          "expr": "sum(rate(payments_total[1m])) by (result)",
+          "legendFormat": "payment {{result}}"
+        }
+      ]
     }
   ],
   "schemaVersion": 39,
@@ -41,5 +77,5 @@
   "time": { "from": "now-15m", "to": "now" },
   "title": "OrderFlow Overview",
   "uid": "orderflow-overview",
-  "version": 1
+  "version": 2
 }
