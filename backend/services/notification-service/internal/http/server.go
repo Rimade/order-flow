@@ -8,7 +8,9 @@ import (
 	"strconv"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"orderflow/notification-service/internal/repository"
+	"orderflow/shared-observability/metrics"
 )
 
 type Server struct {
@@ -18,16 +20,24 @@ type Server struct {
 }
 
 func NewServer(port int, repo *repository.NotificationRepository, logger *slog.Logger) *Server {
+	s := &Server{repo: repo, logger: logger}
+
 	mux := http.NewServeMux()
-	server := &Server{repo: repo, logger: logger, server: &http.Server{
+	mux.HandleFunc("GET /health", s.handleHealth)
+	metrics.RegisterHandler(mux)
+
+	handler := metrics.Middleware(
+		"notification-service",
+		otelhttp.NewHandler(mux, "notification-service"),
+	)
+
+	s.server = &http.Server{
 		Addr:              ":" + strconv.Itoa(port),
-		Handler:           mux,
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
-	}}
+	}
 
-	mux.HandleFunc("GET /health", server.handleHealth)
-
-	return server
+	return s
 }
 
 func (s *Server) Start() error {

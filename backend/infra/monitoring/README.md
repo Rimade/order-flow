@@ -18,7 +18,7 @@ docker compose --profile observability up -d
 
 ## Конфигурация
 
-- `prometheus/prometheus.yml` — targets saga-сервисов
+- `prometheus/prometheus.yml` — scrape всех живых сервисов (3000–3006)
 - `grafana/provisioning/` — datasource + дашборд **OrderFlow Overview**
 
 Подробнее: `backend/docs/metrics.md`.

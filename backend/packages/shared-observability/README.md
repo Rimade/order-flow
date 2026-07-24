@@ -10,7 +10,9 @@
 | `nodejs/tracing.ts` | Эталон для NestJS (`NodeSDK` + auto-instrumentation) |
 | `nodejs/kafka-propagation.ts` | inject/extract `traceparent` в Kafka headers |
 
-NestJS-сервисы держат копию в `src/telemetry/` (см. `api-gateway`, `order-service`).
+NestJS-сервисы держат копию в `src/telemetry/` + `src/metrics/` (`api-gateway`, `auth`, `order`, `catalog`).
+
+Go-сервисы импортируют пакет + `metrics.Middleware` / `otelhttp` (`inventory`, `payment`, `notification`).
 
 ## Go
 

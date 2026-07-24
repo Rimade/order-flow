@@ -314,5 +314,6 @@ Backend (параллельно по желанию):
 - ~~Outbox ops UI~~ — [outbox-ops-ui.md](./outbox-ops-ui.md) + CLI replay;
 - ~~Access/refresh в клиенте~~ — [auth-refresh.md](./auth-refresh.md) (+ logout revoke);
 - ~~Catalog Redis cache~~ — [catalog-cache.md](./catalog-cache.md) (default `CACHE_STORE=redis`);
+- ~~Metrics + OTEL на всех живых сервисах~~ — scrape 3000–3006; analytics пока skeleton; [observability.md](./observability.md), [metrics.md](./metrics.md);
 - CI: `.github/workflows/backend-ci.yml` (Nest build + compose postgres/redis); полный saga e2e — локально;
 - Observability runbook: [observability.md](./observability.md).
