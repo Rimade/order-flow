@@ -33,6 +33,13 @@ export class ProductsService {
       orderBy: { sku: 'asc' },
     });
     const mapped = products.map((p) => this.mapProduct(p));
+    // Soft stampede guard: if another request filled/invalidated, prefer current cache
+    const raced = await this.cache.get<ReturnType<typeof this.mapProduct>[]>(
+      CACHE_LIST_KEY,
+    );
+    if (raced) {
+      return raced;
+    }
     await this.cache.set(CACHE_LIST_KEY, mapped);
     return mapped;
   }
@@ -53,6 +60,10 @@ export class ProductsService {
     }
 
     const mapped = this.mapProduct(product);
+    const raced = await this.cache.get<ReturnType<typeof this.mapProduct>>(key);
+    if (raced) {
+      return raced;
+    }
     await this.cache.set(key, mapped);
     return mapped;
   }

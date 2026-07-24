@@ -48,7 +48,8 @@ export class OrderItemGql {
 
   @Field(() => CatalogProductGql, {
     nullable: true,
-    description: 'Live catalog snapshot by productId/sku; null if missing',
+    description:
+      'Live catalog by order item productId (SKU in OrderFlow); null if missing',
   })
   catalog!: CatalogProductGql | null;
 }

@@ -48,6 +48,8 @@ query OrderDetails($id: ID!) {
 
 `catalog` может быть `null`, если product не найден или catalog-service недоступен (заказ всё равно возвращается).
 
+**Контракт:** в OrderFlow `order.items.productId` — это **SKU** каталога (например `sku-1`), не UUID `products.id`.
+
 ### Список заказов текущего пользователя
 
 ```graphql

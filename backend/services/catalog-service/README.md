@@ -47,4 +47,4 @@ npm run start:dev
 
 ## Кэш
 
-In-memory cache (`@nestjs/cache-manager`), TTL `CACHE_TTL_MS` (по умолчанию 60 с).
+По умолчанию Redis (`CACHE_STORE=redis`), TTL `CACHE_TTL_MS` (60 с). Для локалки без Redis: `CACHE_STORE=memory`. Write (POST/PATCH) удаляет `catalog:products:all` и `catalog:products:{sku}`. Подробнее: [catalog-cache.md](../../docs/catalog-cache.md).
