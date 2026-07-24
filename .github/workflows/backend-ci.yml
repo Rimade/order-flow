@@ -40,8 +40,52 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # prisma generate may need DATABASE_URL at generate time for some setups
           DATABASE_URL: postgresql://orderflow:orderflow@localhost:5433/orderflow_order
+
+  go-build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - inventory-service
+          - payment-service
+          - notification-service
+          - analytics-service
+    defaults:
+      run:
+        working-directory: backend/services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/services/${{ matrix.service }}/go.mod
+          cache-dependency-path: backend/services/${{ matrix.service }}/go.sum
+
+      - name: Go test
+        run: go test ./...
+
+      - name: Go build
+        run: go build -o /tmp/${{ matrix.service }} ./cmd/server
+
+  openapi-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check OpenAPI markers
+        run: node backend/scripts/ci-openapi-check.js
+
+      - name: Gateway openapi:check
+        working-directory: backend/services/api-gateway
+        run: |
+          npm ci
+          npm run openapi:check
 
   compose-infra:
     runs-on: ubuntu-latest
@@ -72,5 +116,116 @@ jobs:
         working-directory: backend/infra/compose
         run: docker compose down -v
 
-  # Full Playwright saga needs Nest+Go on the runner — run locally / manual dispatch later.
+  smoke-auth-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start postgres and redis
+        working-directory: backend/infra/compose
+        run: docker compose up -d postgres redis
+
+      - name: Wait for postgres
+        run: |
+          for i in $(seq 1 40); do
+            if docker exec orderflow-postgres pg_isready -U orderflow >/dev/null 2>&1; then
+              echo "postgres ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            backend/services/auth-service/package-lock.json
+            backend/services/api-gateway/package-lock.json
+
+      - name: Install auth-service
+        working-directory: backend/services/auth-service
+        run: npm ci
+
+      - name: Install api-gateway
+        working-directory: backend/services/api-gateway
+        run: npm ci
+
+      - name: Prepare env and migrate auth
+        run: |
+          cp backend/services/auth-service/.env.example backend/services/auth-service/.env
+          cp backend/services/api-gateway/.env.example backend/services/api-gateway/.env
+          cd backend/services/auth-service
+          npx prisma migrate deploy
+
+      - name: Build auth + gateway
+        run: |
+          (cd backend/services/auth-service && npm run build)
+          (cd backend/services/api-gateway && npm run build)
+
+      - name: Start auth-service
+        working-directory: backend/services/auth-service
+        run: |
+          nohup node dist/main.js > /tmp/auth.log 2>&1 &
+          echo $! > /tmp/auth.pid
+
+      - name: Start api-gateway
+        working-directory: backend/services/api-gateway
+        run: |
+          nohup node dist/main.js > /tmp/gateway.log 2>&1 &
+          echo $! > /tmp/gateway.pid
+
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 45); do
+            if curl -sf http://localhost:3001/health >/dev/null \
+              && curl -sf http://localhost:3000/health >/dev/null; then
+              echo "auth + gateway healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "=== auth log ==="
+          cat /tmp/auth.log || true
+          echo "=== gateway log ==="
+          cat /tmp/gateway.log || true
+          exit 1
+
+      - name: Contract smoke (register → login → me)
+        run: |
+          set -euo pipefail
+          EMAIL="ci-$(date +%s)@example.com"
+          PASS='password123'
+
+          curl -sf -X POST http://localhost:3000/api/v1/auth/register \
+            -H 'Content-Type: application/json' \
+            -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}" \
+            | tee /tmp/register.json
+
+          curl -sf -X POST http://localhost:3000/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}" \
+            | tee /tmp/login.json
+
+          TOKEN=$(node -e "const j=require('/tmp/login.json'); if(!j.accessToken) process.exit(1); process.stdout.write(j.accessToken)")
+
+          curl -sf http://localhost:3000/api/v1/auth/me \
+            -H "Authorization: Bearer $TOKEN" \
+            | tee /tmp/me.json
+
+          node -e "const m=require('/tmp/me.json'); if(!m.email) process.exit(1); console.log('OK me', m.email)"
+
+      - name: Stop processes
+        if: always()
+        run: |
+          kill $(cat /tmp/auth.pid) 2>/dev/null || true
+          kill $(cat /tmp/gateway.pid) 2>/dev/null || true
+
+      - name: Compose down
+        if: always()
+        working-directory: backend/infra/compose
+        run: docker compose down -v
+
+  # Full Playwright saga needs Nest+Go on the runner — run locally.
   # See client/e2e and backend/docs/local-dev-routine.md

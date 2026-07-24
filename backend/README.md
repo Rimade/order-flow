@@ -43,4 +43,18 @@ docker compose up -d
 - [docs/auth-refresh.md](./docs/auth-refresh.md)
 - [docs/catalog-cache.md](./docs/catalog-cache.md)
 - [docs/observability.md](./docs/observability.md) — runbook «заказ → Jaeger»
+- [docs/analytics.md](./docs/analytics.md)
+- [docs/graphql-bff.md](./docs/graphql-bff.md)
 - [infra/compose/README.md](./infra/compose/README.md)
+
+## CI
+
+GitHub Actions: `.github/workflows/backend-ci.yml`
+
+- Nest build (gateway, auth, order, catalog)
+- Go test + build (inventory, payment, notification, analytics)
+- OpenAPI contract markers + `openapi:check`
+- Compose postgres/redis
+- Smoke: auth + gateway health, register → login → me
+
+Полный saga / Playwright — локально ([local-dev-routine.md](./docs/local-dev-routine.md)).
