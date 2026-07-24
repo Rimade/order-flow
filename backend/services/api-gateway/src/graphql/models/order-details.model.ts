@@ -79,3 +79,17 @@ export class OrderDetailsGql {
   @Field(() => [OrderItemGql])
   items!: OrderItemGql[];
 }
+
+@ObjectType()
+export class MeGql {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  email!: string;
+
+  @Field(() => [OrderDetailsGql], {
+    description: 'Current user orders with catalog enrichment',
+  })
+  orders!: OrderDetailsGql[];
+}

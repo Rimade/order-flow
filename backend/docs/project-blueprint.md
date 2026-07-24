@@ -301,7 +301,7 @@ Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и ком
 
 ### План (приоритет)
 
-1. **GraphQL BFF на gateway** — read-only `order(id)` + catalog enrichment ✅; дальше опционально `me.orders`. См. [graphql-bff.md](./graphql-bff.md).
+1. **GraphQL BFF на gateway** — `order(id)` + `me { orders }` + catalog enrichment ✅. См. [graphql-bff.md](./graphql-bff.md).
 2. **`analytics-service` (Go)** ✅ — Kafka → агрегаты + HTTP `:3007`; [analytics.md](./analytics.md).
 3. **Бизнес-метрики** ✅ — order/inventory/payment counters + Grafana panels; [metrics.md](./metrics.md).
 4. **CI глубже** ✅ — Nest build + Go test/build + OpenAPI check + auth/gateway smoke; полный Playwright saga — локально.

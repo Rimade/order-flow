@@ -11,7 +11,7 @@
 | Делаем в GraphQL | Оставляем REST |
 | ---------------- | -------------- |
 | `order(id)` + enrichment catalog | login / refresh / logout |
-| будущие read-агрегаты (`me.orders`) | `POST /orders` (+ Idempotency-Key) |
+| `me { orders }` + enrichment catalog | `POST /orders` (+ Idempotency-Key) |
 | | SSE `/orders/:id/events` |
 | | saga / Kafka / outbox |
 
@@ -47,6 +47,35 @@ query OrderDetails($id: ID!) {
 ```
 
 `catalog` может быть `null`, если product не найден или catalog-service недоступен (заказ всё равно возвращается).
+
+### Список заказов текущего пользователя
+
+```graphql
+query MyOrders {
+  me {
+    id
+    email
+    orders {
+      id
+      status
+      totalAmount
+      currency
+      items {
+        productId
+        productName
+        quantity
+        catalog {
+          sku
+          name
+          price
+        }
+      }
+    }
+  }
+}
+```
+
+Список ходит в `GET /api/v1/orders` на order-service, затем обогащает уникальные `productId` через catalog (кэш на запрос).
 
 ## Локально
 

@@ -32,7 +32,7 @@
 | `GET /api/v1/catalog/products` | `catalog-service` (public) |
 | `POST /api/v1/catalog/products` | `catalog-service` (JWT) |
 | `PATCH /api/v1/catalog/products/:sku` | `catalog-service` (JWT) |
-| `POST /graphql`               | BFF: `order(id)` + catalog enrichment (JWT) |
+| `POST /graphql`               | BFF: `order(id)`, `me { orders }` + catalog (JWT) |
 | `GET /health`                 | локальный health      |
 
 Публичные: auth register/login/refresh/logout, **GET** catalog. Write catalog, orders, GraphQL и `/auth/me` требуют JWT.

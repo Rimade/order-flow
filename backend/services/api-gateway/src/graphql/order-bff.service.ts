@@ -65,8 +65,29 @@ export class OrderBffService {
     requestId?: string,
   ): Promise<OrderDetailsGql> {
     const order = await this.fetchOrder(orderId, user, requestId);
+    return this.toOrderDetails(order, requestId);
+  }
+
+  async listMyOrders(
+    user: AuthenticatedUser,
+    requestId?: string,
+  ): Promise<OrderDetailsGql[]> {
+    const orders = await this.fetchOrders(user, requestId);
+    const catalogCache = new Map<string, CatalogProductGql | null>();
+    return Promise.all(
+      orders.map((order) => this.toOrderDetails(order, requestId, catalogCache)),
+    );
+  }
+
+  private async toOrderDetails(
+    order: UpstreamOrder,
+    requestId?: string,
+    catalogCache?: Map<string, CatalogProductGql | null>,
+  ): Promise<OrderDetailsGql> {
     const items = await Promise.all(
-      order.items.map(async (item) => this.enrichItem(item, requestId)),
+      order.items.map(async (item) =>
+        this.enrichItem(item, requestId, catalogCache),
+      ),
     );
 
     return {
@@ -84,8 +105,13 @@ export class OrderBffService {
   private async enrichItem(
     item: UpstreamOrder['items'][number],
     requestId?: string,
+    catalogCache?: Map<string, CatalogProductGql | null>,
   ): Promise<OrderItemGql> {
-    const catalog = await this.fetchCatalogProduct(item.productId, requestId);
+    const catalog = await this.fetchCatalogProduct(
+      item.productId,
+      requestId,
+      catalogCache,
+    );
 
     return {
       id: item.id,
@@ -95,6 +121,38 @@ export class OrderBffService {
       unitPrice: item.unitPrice,
       catalog,
     };
+  }
+
+  private async fetchOrders(
+    user: AuthenticatedUser,
+    requestId?: string,
+  ): Promise<UpstreamOrder[]> {
+    const base = this.proxyService.getServiceBaseUrl('order');
+    const url = `${base}/api/v1/orders`;
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get<UpstreamOrder[]>(url, {
+          headers: this.buildHeaders(user, requestId),
+          validateStatus: () => true,
+          timeout: this.configService.get<number>('HTTP_CLIENT_TIMEOUT_MS', 10000),
+        }),
+      );
+
+      if (response.status >= 400) {
+        this.logger.warn(
+          `order-service returned ${response.status} for ${url}`,
+        );
+        throw new BadGatewayException('Failed to load orders');
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof BadGatewayException) {
+        throw error;
+      }
+      this.rethrowUpstream(error, 'order', url);
+    }
   }
 
   private async fetchOrder(
@@ -140,7 +198,12 @@ export class OrderBffService {
   private async fetchCatalogProduct(
     productIdOrSku: string,
     requestId?: string,
+    catalogCache?: Map<string, CatalogProductGql | null>,
   ): Promise<CatalogProductGql | null> {
+    if (catalogCache?.has(productIdOrSku)) {
+      return catalogCache.get(productIdOrSku) ?? null;
+    }
+
     const base = this.proxyService.getServiceBaseUrl('catalog');
     const url = `${base}/api/v1/catalog/products/${encodeURIComponent(productIdOrSku)}`;
 
@@ -154,6 +217,7 @@ export class OrderBffService {
       );
 
       if (response.status === 404) {
+        catalogCache?.set(productIdOrSku, null);
         return null;
       }
 
@@ -161,11 +225,12 @@ export class OrderBffService {
         this.logger.warn(
           `catalog-service returned ${response.status} for ${url}`,
         );
+        catalogCache?.set(productIdOrSku, null);
         return null;
       }
 
       const product = response.data;
-      return {
+      const mapped: CatalogProductGql = {
         id: product.id,
         sku: product.sku,
         name: product.name,
@@ -174,11 +239,14 @@ export class OrderBffService {
         currency: product.currency,
         category: product.category ?? null,
       };
+      catalogCache?.set(productIdOrSku, mapped);
+      return mapped;
     } catch (error) {
       this.logger.warn(
         `catalog enrichment skipped for ${productIdOrSku}`,
         error instanceof Error ? error.message : error,
       );
+      catalogCache?.set(productIdOrSku, null);
       return null;
     }
   }
