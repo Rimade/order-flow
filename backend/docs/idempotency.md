@@ -38,8 +38,25 @@ IDEMPOTENCY_TTL_SECONDS=86400
 
 `@orderflow/api-client` на каждый `orders.create` генерирует новый `Idempotency-Key` (`crypto.randomUUID()`).
 
-## Проверка вручную
+## Автотесты
 
-1. Redis up (`docker compose` в `backend/infra/compose`).
-2. Создай заказ через gateway с фиксированным ключом дважды (curl).
-3. Второй ответ — тот же `id` заказа; в БД один ряд.
+Playwright (нужен поднятый backend + Redis idempotency):
+
+```powershell
+cd client
+pnpm e2e -- order-idempotency
+```
+
+Payment fail + compensation (отдельный прогон):
+
+```powershell
+# payment-service: PAYMENT_SIMULATE_SUCCESS=false
+$env:E2E_PAYMENT_FAIL='1'
+pnpm e2e -- order-payment-fail
+```
+
+Или API smoke без браузера:
+
+```powershell
+node backend/scripts/smoke-reliability.mjs
+```

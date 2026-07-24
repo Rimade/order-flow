@@ -305,7 +305,7 @@ Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и ком
 2. **`analytics-service` (Go)** ✅ — Kafka → агрегаты + HTTP `:3007`; [analytics.md](./analytics.md).
 3. **Бизнес-метрики** ✅ — order/inventory/payment counters + Grafana panels; [metrics.md](./metrics.md).
 4. **CI глубже** ✅ — Nest build + Go test/build + OpenAPI check + auth/gateway smoke; полный Playwright saga — локально.
-5. **Failure/idempotency тесты** — payment-fail → compensation; duplicate Idempotency-Key.
+5. **Failure/idempotency тесты** ✅ — Playwright API: Idempotency-Key replay/422; payment-fail → FAILED (`E2E_PAYMENT_FAIL=1`); [idempotency.md](./idempotency.md).
 6. **Catalog write + cache invalidation** — учебный admin/seed path.
 
 Сознательно **не** берём: ELK/Loki, Alertmanager, service mesh, GraphQL внутри auth/order/payment.
@@ -324,4 +324,5 @@ Backend (сделано):
 - ~~Metrics + OTEL на всех живых сервисах~~ — scrape 3000–3007; [observability.md](./observability.md), [metrics.md](./metrics.md);
 - ~~analytics-service~~ — [analytics.md](./analytics.md);
 - ~~CI глубже~~ — `.github/workflows/backend-ci.yml` (Nest/Go build, OpenAPI, auth→gateway smoke); полный saga e2e — локально;
+- ~~Idempotency + payment-fail e2e~~ — `client/e2e/order-idempotency.spec.ts`, `order-payment-fail.spec.ts`, `backend/scripts/smoke-reliability.mjs`;
 - Observability runbook: [observability.md](./observability.md).

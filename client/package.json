@@ -8,6 +8,8 @@
 		"codegen": "pnpm --filter @orderflow/api-client codegen",
 		"lint": "turbo run lint",
 		"e2e": "playwright test",
+		"e2e:idempotency": "playwright test order-idempotency",
+		"e2e:payment-fail": "playwright test order-payment-fail",
 		"e2e:ui": "playwright test --ui",
 		"e2e:report": "playwright show-report",
 		"build:static": "powershell -File ./scripts/build-static.ps1",
