@@ -4,3 +4,4 @@ CREATE DATABASE orderflow_inventory;
 CREATE DATABASE orderflow_payment;
 CREATE DATABASE orderflow_notification;
 CREATE DATABASE orderflow_catalog;
+CREATE DATABASE orderflow_analytics;

@@ -25,10 +25,10 @@ docker compose --profile observability up -d
 | payment-service | :3004 |
 | notification-service | :3005 |
 | catalog-service | :3006 |
+| analytics-service | :3007 |
 
 Метрики: `http_requests_total`, `http_request_duration_seconds` + default process metrics.
-
-`analytics-service` пока skeleton — без scrape/OTEL.
+Analytics также отдаёт `analytics_events_processed_total` / `analytics_events_skipped_total`.
 
 ## Grafana
 

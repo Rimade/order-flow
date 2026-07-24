@@ -141,9 +141,11 @@
 
 Ответственность:
 
-- сбор бизнес-событий;
-- агрегация метрик;
-- подготовка данных для дашбордов.
+- consumption saga Kafka-событий (`order.created`, inventory/payment outcomes);
+- агрегация orders-by-status / day и funnel (cancel rate);
+- HTTP read API + Prometheus business counters (`:3007`).
+
+См. [analytics.md](./analytics.md).
 
 ## Границы данных
 
@@ -300,8 +302,8 @@ Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и ком
 ### План (приоритет)
 
 1. **GraphQL BFF на gateway** — read-only `order(id)` + catalog enrichment ✅; дальше опционально `me.orders`. См. [graphql-bff.md](./graphql-bff.md).
-2. **`analytics-service` (Go)** — Kafka → агрегаты (orders/day, cancel rate); skeleton уже есть.
-3. **Бизнес-метрики** — `orders_*`, `inventory_rejected_*`, `payments_failed_*` в Prometheus.
+2. **`analytics-service` (Go)** ✅ — Kafka → агрегаты + HTTP `:3007`; [analytics.md](./analytics.md).
+3. **Бизнес-метрики** — дотянуть counters в order/inventory/payment (частично уже в analytics).
 4. **CI глубже** — `go build` + contract smoke; полный Playwright saga — локально.
 5. **Failure/idempotency тесты** — payment-fail → compensation; duplicate Idempotency-Key.
 6. **Catalog write + cache invalidation** — учебный admin/seed path.
@@ -319,6 +321,7 @@ Backend (сделано):
 - ~~Outbox ops UI~~ — [outbox-ops-ui.md](./outbox-ops-ui.md) + CLI replay;
 - ~~Access/refresh в клиенте~~ — [auth-refresh.md](./auth-refresh.md) (+ logout revoke);
 - ~~Catalog Redis cache~~ — [catalog-cache.md](./catalog-cache.md) (default `CACHE_STORE=redis`);
-- ~~Metrics + OTEL на всех живых сервисах~~ — scrape 3000–3006; analytics пока skeleton; [observability.md](./observability.md), [metrics.md](./metrics.md);
+- ~~Metrics + OTEL на всех живых сервисах~~ — scrape 3000–3007; [observability.md](./observability.md), [metrics.md](./metrics.md);
+- ~~analytics-service~~ — [analytics.md](./analytics.md);
 - CI: `.github/workflows/backend-ci.yml` (Nest build + compose postgres/redis); полный saga e2e — локально;
 - Observability runbook: [observability.md](./observability.md).

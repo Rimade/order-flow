@@ -20,7 +20,7 @@
 | Слой | Что входит | Как запускается | Можно оставить на ночь? |
 |------|------------|-----------------|-------------------------|
 | **Инфра** | Postgres, Redis, Kafka, RabbitMQ, Kafka UI | Docker Compose | Да, часто так и делают |
-| **Приложения** | auth, gateway, order, catalog (Nest) + inventory, payment, notification (Go) | Отдельные терминалы | Лучше остановить (Ctrl+C) |
+| **Приложения** | auth, gateway, order, catalog (Nest) + inventory, payment, notification, analytics (Go) | Отдельные терминалы | Лучше остановить (Ctrl+C) |
 
 Клиент (браузер, Postman, будущий фронт) ходит **только** в gateway:
 
@@ -38,7 +38,7 @@ http://localhost:3000/api/v1/...
 |------------|-------|----------|
 | **Docker Desktop** | Postgres, Kafka, Redis, RabbitMQ | `docker version` |
 | **Node.js** 20+ (лучше 22) | Nest-сервисы | `node -v` |
-| **Go** 1.22+ | inventory, payment, notification | `go version` |
+| **Go** 1.22+ | inventory, payment, notification, analytics | `go version` |
 | **Git** | репозиторий | `git --version` |
 
 Опционально: Thunder Client / Postman / Insomnia для HTTP.
@@ -95,6 +95,7 @@ npm run prisma:migrate:dev
 | inventory | `backend/services/inventory-service` | `go mod download` |
 | payment | `backend/services/payment-service` | `go mod download` |
 | notification | `backend/services/notification-service` | `go mod download` |
+| analytics | `backend/services/analytics-service` | `CREATE DATABASE orderflow_analytics` + `go mod tidy` |
 
 **Секрет JWT:** в `api-gateway/.env` значение `JWT_ACCESS_SECRET` **должно совпадать** с `auth-service/.env`.
 
@@ -149,6 +150,7 @@ docker compose ps
 | `inventory` | `backend/services/inventory-service` | `go run ./cmd/server` |
 | `payment` | `backend/services/payment-service` | `go run ./cmd/server` |
 | `notification` | `backend/services/notification-service` | `go run ./cmd/server` |
+| `analytics` | `backend/services/analytics-service` | `go run ./cmd/server` (:3007) |
 
 Дождитесь в логах Nest: `Nest application successfully started`.
 
@@ -213,6 +215,8 @@ docker compose down
 | inventory-service | 3003 | Go |
 | payment-service | 3004 | Go |
 | notification-service | 3005 | Go |
+| catalog-service | 3006 | Nest |
+| analytics-service | 3007 | Go, aggregates |
 | PostgreSQL (Docker) | **5433** | `orderflow:orderflow@localhost:5433/...` |
 | Redis | 6379 | rate limit на gateway |
 | Kafka | 9092 | события саги |
@@ -228,6 +232,8 @@ docker compose down
 | inventory | `orderflow_inventory` |
 | payment | `orderflow_payment` |
 | notification | `orderflow_notification` |
+| catalog | `orderflow_catalog` |
+| analytics | `orderflow_analytics` |
 
 ---
 
