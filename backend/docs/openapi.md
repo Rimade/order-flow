@@ -34,3 +34,7 @@ npm run openapi:check
 2. `pnpm codegen` в `client`.
 3. Перезапускаешь gateway — `/docs` подхватит YAML.
 4. При необходимости обновишь ручной `api-client` (fetch-обёртки).
+
+## GraphQL
+
+Read-агрегаты на gateway (`/graphql`) — отдельно от OpenAPI. См. [graphql-bff.md](./graphql-bff.md). Mutations и domain API остаются REST.

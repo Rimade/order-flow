@@ -25,5 +25,6 @@ import { ProxyStreamService } from './proxy-stream.service';
     OpsProxyController,
   ],
   providers: [ProxyService, ProxyStreamService],
+  exports: [ProxyService],
 })
 export class ProxyModule {}

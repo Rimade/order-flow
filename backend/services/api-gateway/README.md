@@ -2,7 +2,7 @@
 
 **Stack:** NestJS
 
-Единая точка входа для клиентов OrderFlow. Gateway не содержит бизнес-логики: валидирует JWT, ограничивает трафик, проксирует запросы в backend-сервисы и пробрасывает observability-заголовки.
+Единая точка входа для клиентов OrderFlow. Gateway валидирует JWT, ограничивает трафик, проксирует REST в backend-сервисы и даёт **GraphQL BFF** для read-агрегатов (`/graphql`).
 
 **Порт по умолчанию:** `3000`
 
@@ -29,9 +29,12 @@
 | `POST /api/v1/orders`         | `order-service` (JWT) |
 | `GET /api/v1/orders`          | `order-service` (JWT) |
 | `GET /api/v1/orders/:id`      | `order-service` (JWT) |
+| `POST /graphql`               | BFF: `order(id)` + catalog enrichment (JWT) |
 | `GET /health`                 | локальный health      |
 
-Публичные auth-эндпоинты не требуют JWT. `GET /api/v1/auth/me` требует `Authorization: Bearer <accessToken>`.
+Публичные auth-эндпоинты не требуют JWT. `GET /api/v1/auth/me` и GraphQL queries требуют `Authorization: Bearer <accessToken>`.
+
+GraphQL: [graphql-bff.md](../../docs/graphql-bff.md). Apollo Sandbox: http://localhost:3000/graphql
 
 ## Запуск
 

@@ -13,6 +13,7 @@ import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { ProxyModule } from './proxy/proxy.module';
+import { GatewayGraphqlModule } from './graphql/gateway-graphql.module';
 import { REDIS_CLIENT } from './redis/redis.constants';
 import { RedisModule } from './redis/redis.module';
 import { GatewayThrottlerGuard } from './throttler/gateway-throttler.guard';
@@ -49,6 +50,7 @@ import { GatewayThrottlerGuard } from './throttler/gateway-throttler.guard';
     HealthModule,
     MetricsModule,
     ProxyModule,
+    GatewayGraphqlModule,
   ],
   providers: [
     {

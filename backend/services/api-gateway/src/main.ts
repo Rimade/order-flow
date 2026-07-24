@@ -40,6 +40,7 @@ async function bootstrap() {
     exclude: [
       { path: 'health', method: RequestMethod.ALL },
       { path: 'metrics', method: RequestMethod.ALL },
+      { path: 'graphql', method: RequestMethod.ALL },
       { path: 'docs', method: RequestMethod.ALL },
       { path: 'docs-json', method: RequestMethod.ALL },
       { path: 'docs/(.*)', method: RequestMethod.ALL },

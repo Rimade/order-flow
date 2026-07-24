@@ -77,7 +77,8 @@
 - auth guards;
 - rate limiting;
 - маршрутизация к backend-сервисам;
-- единая API-документация.
+- единая API-документация (OpenAPI + GraphQL BFF read-model);
+- GraphQL `/graphql` — агрегация read-запросов (не замена REST/команд).
 
 #### `auth-service`
 
@@ -296,16 +297,20 @@
 
 Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и компенсация inventory реализованы.
 
-Frontend (текущий фокус):
+### План (приоритет)
 
-1. ~~Документация~~ — [microfrontends.md](../../client/docs/microfrontends.md), [ui-kit.md](../../client/docs/ui-kit.md);
-2. ~~Фаза 1~~ — Module Federation + login/orders UI;
-3. ~~Фаза 3 (частично)~~ — Playwright E2E, nginx static (`client/infra`);
-4. ~~Фаза 2~~ — `catalog-service` + `mfe-catalog` (read API + UI);
-5. ~~OpenAPI codegen~~ — `backend/packages/contracts/openapi/`, `pnpm codegen` в `client`;
-6. ~~Dialog/Select, feature flags, E2E каталог~~ — см. [microfrontends.md](../../client/docs/microfrontends.md).
+1. **GraphQL BFF на gateway** — read-only `order(id)` + catalog enrichment ✅; дальше опционально `me.orders`. См. [graphql-bff.md](./graphql-bff.md).
+2. **`analytics-service` (Go)** — Kafka → агрегаты (orders/day, cancel rate); skeleton уже есть.
+3. **Бизнес-метрики** — `orders_*`, `inventory_rejected_*`, `payments_failed_*` в Prometheus.
+4. **CI глубже** — `go build` + contract smoke; полный Playwright saga — локально.
+5. **Failure/idempotency тесты** — payment-fail → compensation; duplicate Idempotency-Key.
+6. **Catalog write + cache invalidation** — учебный admin/seed path.
 
-Backend (параллельно по желанию):
+Сознательно **не** берём: ELK/Loki, Alertmanager, service mesh, GraphQL внутри auth/order/payment.
+
+Frontend: фазы 1–2 + OpenAPI codegen уже закрыты (см. выше).
+
+Backend (сделано):
 
 - ~~replay tooling для `dlq.outbox`~~ — `backend/scripts/outbox-replay.ps1` (reset FAILED → PENDING);
 - ~~Idempotency-Key~~ — Redis в order-service, см. [idempotency.md](./idempotency.md);
