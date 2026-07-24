@@ -33,6 +33,8 @@ const required = [
   '/catalog/products:',
   'catalogCreateProduct',
   'catalogUpdateProduct',
+  'analyticsSummary',
+  'analyticsOrdersByDay',
   'bearerAuth:',
 ];
 

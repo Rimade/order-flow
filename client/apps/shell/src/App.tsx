@@ -13,6 +13,7 @@ const ProductDetailPage = lazy(() => import('mfe_catalog/ProductDetailPage'));
 const OrdersListPage = lazy(() => import('mfe_orders/OrdersListPage'));
 const OrderDetailPage = lazy(() => import('mfe_orders/OrderDetailPage'));
 const OutboxOpsPage = lazy(() => import('mfe_orders/OutboxOpsPage'));
+const AnalyticsOpsPage = lazy(() => import('mfe_orders/AnalyticsOpsPage'));
 
 function RemoteFallback() {
 	return (
@@ -149,6 +150,20 @@ export function App() {
 							<ShellLayout>
 								<LazyRemote>
 									<OutboxOpsPage />
+								</LazyRemote>
+							</ShellLayout>
+						</ProtectedRoute>
+					}
+				/>
+			) : null}
+			{features.analytics ? (
+				<Route
+					path="/ops/analytics"
+					element={
+						<ProtectedRoute>
+							<ShellLayout>
+								<LazyRemote>
+									<AnalyticsOpsPage />
 								</LazyRemote>
 							</ShellLayout>
 						</ProtectedRoute>

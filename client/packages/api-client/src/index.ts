@@ -147,6 +147,8 @@ export type CreateProductInput = components['schemas']['CreateProductBody'];
 export type UpdateProductInput = components['schemas']['UpdateProductBody'];
 export type CreateOrderItemInput = components['schemas']['CreateOrderItemInput'];
 export type OutboxFailedMessage = components['schemas']['OutboxFailedMessage'];
+export type AnalyticsSummary = components['schemas']['AnalyticsSummary'];
+export type AnalyticsOrdersByDay = components['schemas']['AnalyticsOrdersByDay'];
 
 export { watchOrderStatus, type OrderStatusEvent } from './order-status-sse';
 
@@ -226,5 +228,17 @@ export const api = {
 				method: 'POST',
 				auth: true,
 			}),
+	},
+	analytics: {
+		summary: () =>
+			request<AnalyticsSummary>('/api/v1/analytics/summary', {
+				method: 'GET',
+				auth: true,
+			}),
+		ordersByDay: (days = 7) =>
+			request<AnalyticsOrdersByDay>(
+				`/api/v1/analytics/orders-by-day?days=${encodeURIComponent(String(days))}`,
+				{ method: 'GET', auth: true },
+			),
 	},
 };

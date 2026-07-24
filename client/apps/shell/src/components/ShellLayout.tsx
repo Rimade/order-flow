@@ -50,6 +50,11 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 								Ops
 							</NavLink>
 						) : null}
+						{features.analytics ? (
+							<NavLink to="/ops/analytics" className={navLinkClass}>
+								Analytics
+							</NavLink>
+						) : null}
 					</nav>
 					<div className="flex items-center gap-3">
 						{user ? (

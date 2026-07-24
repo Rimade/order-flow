@@ -27,7 +27,11 @@ const schema = z.object({
 	name: z.string().min(1, 'Укажите название').max(200),
 	description: z.string().max(2000).optional(),
 	price: z.coerce.number().min(0, 'Цена ≥ 0'),
-	currency: z.string().min(1).max(3).default('USD'),
+	currency: z
+		.string()
+		.trim()
+		.transform((value) => value || 'USD')
+		.pipe(z.string().min(1).max(3)),
 	category: z.string().max(64).optional(),
 });
 
@@ -158,7 +162,8 @@ export function ProductFormDialog({
 						<Input
 							id="product-sku"
 							data-testid="product-form-sku"
-							disabled={mode === 'edit'}
+							readOnly={mode === 'edit'}
+							className={mode === 'edit' ? 'bg-of-muted/50' : undefined}
 							{...register('sku')}
 						/>
 						{errors.sku ? (

@@ -39,3 +39,9 @@ declare module 'mfe_orders/OutboxOpsPage' {
 	const OutboxOpsPage: ComponentType;
 	export default OutboxOpsPage;
 }
+
+declare module 'mfe_orders/AnalyticsOpsPage' {
+	import type { ComponentType } from 'react';
+	const AnalyticsOpsPage: ComponentType;
+	export default AnalyticsOpsPage;
+}

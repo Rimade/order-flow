@@ -33,9 +33,11 @@
 | `POST /api/v1/catalog/products` | `catalog-service` (JWT) |
 | `PATCH /api/v1/catalog/products/:sku` | `catalog-service` (JWT) |
 | `POST /graphql`               | BFF: `order(id)`, `me { orders }` + catalog (JWT) |
+| `GET /api/v1/analytics/summary` | `analytics-service` (JWT) |
+| `GET /api/v1/analytics/orders-by-day` | `analytics-service` (JWT) |
 | `GET /health`                 | локальный health      |
 
-Публичные: auth register/login/refresh/logout, **GET** catalog. Write catalog, orders, GraphQL и `/auth/me` требуют JWT.
+Публичные: auth register/login/refresh/logout, **GET** catalog. Write catalog, orders, analytics, GraphQL и `/auth/me` требуют JWT.
 
 GraphQL: [graphql-bff.md](../../docs/graphql-bff.md). Apollo Sandbox: http://localhost:3000/graphql
 

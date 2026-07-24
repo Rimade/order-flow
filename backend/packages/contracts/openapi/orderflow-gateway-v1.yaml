@@ -314,6 +314,42 @@ paths:
           description: Not found
         '422':
           description: Not FAILED
+  /analytics/summary:
+    get:
+      operationId: analyticsSummary
+      tags: [analytics]
+      summary: Order funnel totals from saga events (analytics-service)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+  /analytics/orders-by-day:
+    get:
+      operationId: analyticsOrdersByDay
+      tags: [analytics]
+      summary: Daily status counts for the last N days
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+            default: 7
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsOrdersByDay'
 components:
   securitySchemes:
     bearerAuth:
@@ -540,3 +576,49 @@ components:
         service:
           type: string
           enum: [order-service]
+    AnalyticsSummary:
+      type: object
+      required: [totalEvents, byStatus, funnel]
+      properties:
+        totalEvents:
+          type: integer
+        byStatus:
+          type: object
+          additionalProperties:
+            type: integer
+        funnel:
+          type: object
+          required: [created, confirmed, cancelled, failed, cancelRate]
+          properties:
+            created:
+              type: integer
+            confirmed:
+              type: integer
+            cancelled:
+              type: integer
+            failed:
+              type: integer
+            cancelRate:
+              type: number
+              format: double
+    AnalyticsOrdersByDay:
+      type: object
+      required: [days, items]
+      properties:
+        days:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalyticsDayStatusCount'
+    AnalyticsDayStatusCount:
+      type: object
+      required: [day, status, count]
+      properties:
+        day:
+          type: string
+          format: date
+        status:
+          type: string
+        count:
+          type: integer

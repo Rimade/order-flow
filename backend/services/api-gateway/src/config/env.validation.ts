@@ -27,6 +27,9 @@ class EnvironmentVariables {
   @IsUrl({ require_tld: false })
   CATALOG_SERVICE_URL!: string;
 
+  @IsUrl({ require_tld: false })
+  ANALYTICS_SERVICE_URL!: string;
+
   @IsString()
   @IsNotEmpty()
   JWT_ACCESS_SECRET!: string;

@@ -16,12 +16,18 @@ payment.failed         → FAILED
 
 ## API
 
-База: `http://localhost:3007`
+База сервиса: `http://localhost:3007`  
+Через gateway (JWT): `http://localhost:3000/api/v1/analytics/...`
 
 ```powershell
 curl http://localhost:3007/api/v1/analytics/summary
 curl "http://localhost:3007/api/v1/analytics/orders-by-day?days=7"
+
+# через gateway
+curl http://localhost:3000/api/v1/analytics/summary -H "Authorization: Bearer $TOKEN"
 ```
+
+UI: shell → **Analytics** (`/ops/analytics`) — `mfe-orders` `AnalyticsOpsPage`.
 
 `cancelRate` = `CANCELLED / PENDING` (по счётчикам событий).
 

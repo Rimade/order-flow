@@ -1,6 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AnalyticsProxyController } from './analytics-proxy.controller';
 import { CatalogProxyController } from './catalog-proxy.controller';
 import { OpsProxyController } from './ops-proxy.controller';
 import { OrdersProxyController } from './orders-proxy.controller';
@@ -23,6 +24,7 @@ import { ProxyStreamService } from './proxy-stream.service';
     OrdersProxyController,
     CatalogProxyController,
     OpsProxyController,
+    AnalyticsProxyController,
   ],
   providers: [ProxyService, ProxyStreamService],
   exports: [ProxyService],
