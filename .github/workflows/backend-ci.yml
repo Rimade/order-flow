@@ -160,9 +160,9 @@ jobs:
           (cd backend/services/api-gateway && npm ci && npm run build)
 
           # Keep processes in THIS step — GHA kills background jobs between steps
-          (cd backend/services/auth-service && node dist/main > /tmp/auth.log 2>&1) &
+          (cd backend/services/auth-service && node dist/main.js > /tmp/auth.log 2>&1) &
           AUTH_PID=$!
-          (cd backend/services/api-gateway && node dist/main > /tmp/gateway.log 2>&1) &
+          (cd backend/services/api-gateway && node dist/main.js > /tmp/gateway.log 2>&1) &
           GW_PID=$!
 
           cleanup() {
