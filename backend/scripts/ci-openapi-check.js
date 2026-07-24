@@ -31,6 +31,8 @@ const required = [
   '/auth/me:',
   '/orders:',
   '/catalog/products:',
+  'catalogCreateProduct',
+  'catalogUpdateProduct',
   'bearerAuth:',
 ];
 

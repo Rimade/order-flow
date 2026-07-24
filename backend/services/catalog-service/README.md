@@ -10,6 +10,10 @@
 |-------|------|------|
 | GET | `/api/v1/catalog/products` | публично (через gateway) |
 | GET | `/api/v1/catalog/products/:sku` | публично |
+| POST | `/api/v1/catalog/products` | JWT (gateway) |
+| PATCH | `/api/v1/catalog/products/:sku` | JWT (gateway) |
+
+Write инвалидирует Redis keys `catalog:products:all` и `catalog:products:{sku}` — см. [catalog-cache.md](../../docs/catalog-cache.md).
 
 ## Локальный запуск
 

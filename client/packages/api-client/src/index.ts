@@ -143,6 +143,8 @@ export type OrderStatus = components['schemas']['OrderStatus'];
 export type OrderItem = components['schemas']['OrderItem'];
 export type Order = components['schemas']['Order'];
 export type Product = components['schemas']['Product'];
+export type CreateProductInput = components['schemas']['CreateProductBody'];
+export type UpdateProductInput = components['schemas']['UpdateProductBody'];
 export type CreateOrderItemInput = components['schemas']['CreateOrderItemInput'];
 export type OutboxFailedMessage = components['schemas']['OutboxFailedMessage'];
 
@@ -183,6 +185,18 @@ export const api = {
 		getProduct: (sku: string) =>
 			request<Product>(`/api/v1/catalog/products/${encodeURIComponent(sku)}`, {
 				method: 'GET',
+			}),
+		createProduct: (body: CreateProductInput) =>
+			request<Product>('/api/v1/catalog/products', {
+				method: 'POST',
+				auth: true,
+				body,
+			}),
+		updateProduct: (sku: string, body: UpdateProductInput) =>
+			request<Product>(`/api/v1/catalog/products/${encodeURIComponent(sku)}`, {
+				method: 'PATCH',
+				auth: true,
+				body,
 			}),
 	},
 	orders: {

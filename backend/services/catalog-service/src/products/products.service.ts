@@ -1,8 +1,15 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Cache } from 'cache-manager';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 const CACHE_LIST_KEY = 'catalog:products:all';
 const cacheSkuKey = (sku: string) => `catalog:products:${sku}`;
@@ -48,6 +55,74 @@ export class ProductsService {
     const mapped = this.mapProduct(product);
     await this.cache.set(key, mapped);
     return mapped;
+  }
+
+  async create(dto: CreateProductDto) {
+    try {
+      const product = await this.prisma.product.create({
+        data: {
+          sku: dto.sku,
+          name: dto.name,
+          description: dto.description,
+          price: new Prisma.Decimal(dto.price),
+          currency: dto.currency ?? 'USD',
+          category: dto.category,
+        },
+      });
+
+      await this.invalidateCache(product.sku);
+      return this.mapProduct(product);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(`Product sku "${dto.sku}" already exists`);
+      }
+      throw error;
+    }
+  }
+
+  async updateBySku(sku: string, dto: UpdateProductDto) {
+    const existing = await this.prisma.product.findUnique({ where: { sku } });
+    if (!existing) {
+      throw new NotFoundException(`Product ${sku} not found`);
+    }
+
+    if (
+      dto.name === undefined &&
+      dto.description === undefined &&
+      dto.price === undefined &&
+      dto.currency === undefined &&
+      dto.category === undefined
+    ) {
+      return this.mapProduct(existing);
+    }
+
+    const product = await this.prisma.product.update({
+      where: { sku },
+      data: {
+        ...(dto.name !== undefined ? { name: dto.name } : {}),
+        ...(dto.description !== undefined
+          ? { description: dto.description }
+          : {}),
+        ...(dto.price !== undefined
+          ? { price: new Prisma.Decimal(dto.price) }
+          : {}),
+        ...(dto.currency !== undefined ? { currency: dto.currency } : {}),
+        ...(dto.category !== undefined ? { category: dto.category } : {}),
+      },
+    });
+
+    await this.invalidateCache(sku);
+    return this.mapProduct(product);
+  }
+
+  private async invalidateCache(sku: string) {
+    await Promise.all([
+      this.cache.del(CACHE_LIST_KEY),
+      this.cache.del(cacheSkuKey(sku)),
+    ]);
   }
 
   private mapProduct(product: {

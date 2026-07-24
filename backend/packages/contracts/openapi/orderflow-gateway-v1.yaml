@@ -108,6 +108,29 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Product'
+    post:
+      operationId: catalogCreateProduct
+      tags: [catalog]
+      summary: Create product (JWT) and invalidate Redis cache
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductBody'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '409':
+          description: SKU already exists
   /catalog/products/{sku}:
     get:
       operationId: catalogGetProduct
@@ -125,6 +148,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Product'
+    patch:
+      operationId: catalogUpdateProduct
+      tags: [catalog]
+      summary: Update product by SKU (JWT) and invalidate Redis cache
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
   /orders:
     get:
       operationId: ordersList
@@ -341,6 +393,40 @@ components:
         updatedAt:
           type: string
           format: date-time
+    CreateProductBody:
+      type: object
+      required: [sku, name, price]
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        currency:
+          type: string
+          default: USD
+        category:
+          type: string
+    UpdateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          format: double
+        currency:
+          type: string
+        category:
+          type: string
+          nullable: true
     OrderStatus:
       type: string
       enum: [PENDING, PAYMENT_PENDING, CONFIRMED, CANCELLED, FAILED]

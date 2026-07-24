@@ -95,7 +95,8 @@ export interface paths {
         };
         get: operations["catalogListProducts"];
         put?: never;
-        post?: never;
+        /** Create product (JWT) and invalidate Redis cache */
+        post: operations["catalogCreateProduct"];
         delete?: never;
         options?: never;
         head?: never;
@@ -115,7 +116,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update product by SKU (JWT) and invalidate Redis cache */
+        patch: operations["catalogUpdateProduct"];
         trace?: never;
     };
     "/orders": {
@@ -242,6 +244,24 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        CreateProductBody: {
+            sku: string;
+            name: string;
+            description?: string;
+            /** Format: double */
+            price: number;
+            /** @default USD */
+            currency: string;
+            category?: string;
+        };
+        UpdateProductBody: {
+            name?: string;
+            description?: string | null;
+            /** Format: double */
+            price?: number;
+            currency?: string;
+            category?: string | null;
         };
         /** @enum {string} */
         OrderStatus: "PENDING" | "PAYMENT_PENDING" | "CONFIRMED" | "CANCELLED" | "FAILED";
@@ -450,6 +470,44 @@ export interface operations {
             };
         };
     };
+    catalogCreateProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProductBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description SKU already exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     catalogGetProduct: {
         parameters: {
             query?: never;
@@ -469,6 +527,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Product"];
                 };
+            };
+        };
+    };
+    catalogUpdateProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sku: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
