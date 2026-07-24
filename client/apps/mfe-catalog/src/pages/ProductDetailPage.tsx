@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 	Dialog,
+	DialogClose,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,

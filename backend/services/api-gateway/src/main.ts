@@ -43,7 +43,7 @@ async function bootstrap() {
       { path: 'graphql', method: RequestMethod.ALL },
       { path: 'docs', method: RequestMethod.ALL },
       { path: 'docs-json', method: RequestMethod.ALL },
-      { path: 'docs/(.*)', method: RequestMethod.ALL },
+      { path: 'docs/*path', method: RequestMethod.ALL },
     ],
   });
 

@@ -17,7 +17,7 @@ export class ProductsController {
     return this.productsService.findBySku(sku);
   }
 
-	@Post('products')
+  @Post('products')
   @HttpCode(201)
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
