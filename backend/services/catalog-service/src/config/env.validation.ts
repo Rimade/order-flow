@@ -43,7 +43,10 @@ export function validateEnv(config: Record<string, unknown>) {
 		enableImplicitConversion: true,
 	});
 
-	const errors = validateSync(validated, { skipMissingProperties: false });
+	const errors = validateSync(validated, {
+		skipMissingProperties: false,
+		forbidUnknownValues: false,
+	});
 
 	if (errors.length > 0) {
 		throw new Error(errors.toString());
