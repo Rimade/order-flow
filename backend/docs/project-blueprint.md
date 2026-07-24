@@ -309,6 +309,7 @@ Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и ком
 6. **Catalog write + cache invalidation** ✅ — POST/PATCH products + Redis `del` list/sku; JWT на write; [catalog-cache.md](./catalog-cache.md).
 7. **Catalog write UI** ✅ — create/edit в `mfe-catalog` (`ProductFormDialog`).
 8. **Analytics UI через gateway** ✅ — proxy + OpenAPI + `/ops/analytics`; см. [analytics.md](./analytics.md).
+9. **GraphQL в mfe-orders** ✅ — `me.orders` / `order(id)` + catalog enrichment в UI; create/SSE остаются REST.
 
 Сознательно **не** берём: ELK/Loki, Alertmanager, service mesh, GraphQL внутри auth/order/payment.
 
@@ -330,4 +331,5 @@ Backend (сделано):
 - ~~Catalog write + cache invalidation~~ — [catalog-cache.md](./catalog-cache.md);
 - ~~Catalog write UI~~ — create/edit dialogs в `mfe-catalog`;
 - ~~Analytics UI~~ — gateway proxy + `/ops/analytics`;
+- ~~GraphQL client reads~~ — `api.graphql` в mfe-orders;
 - Observability runbook: [observability.md](./observability.md).

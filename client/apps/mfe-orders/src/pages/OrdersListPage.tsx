@@ -1,4 +1,4 @@
-import { ApiError, api, type CreateOrderItemInput } from '@orderflow/api-client';
+import { ApiError, api, type CreateOrderItemInput, type OrderStatus } from '@orderflow/api-client';
 import {
 	Alert,
 	AlertDescription,
@@ -52,7 +52,7 @@ export default function OrdersListPage() {
 
 	const ordersQuery = useQuery({
 		queryKey: ['orders'],
-		queryFn: () => api.orders.list(),
+		queryFn: () => api.graphql.meOrders(),
 	});
 
 	const createMutation = useMutation({
@@ -95,7 +95,7 @@ export default function OrdersListPage() {
 		<div className="space-y-6">
 			<PageHeader
 				title="Заказы"
-				description="Happy path: sku-1 → Подтверждён. Failure: sku-4 → Отменён (нет на складе)."
+				description="Список через GraphQL BFF (me.orders). Happy path: sku-1 → Подтверждён. Failure: sku-4 → Отменён."
 				actions={
 					<>
 						<Button
@@ -175,7 +175,7 @@ export default function OrdersListPage() {
 										</p>
 									</div>
 									<div className="flex items-center gap-3">
-										<OrderStatusBadge status={order.status} />
+										<OrderStatusBadge status={order.status as OrderStatus} />
 										<Link to={`/orders/${order.id}`}>
 											<Button variant="outline" size="sm" type="button">
 												Детали

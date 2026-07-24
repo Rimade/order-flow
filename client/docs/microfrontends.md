@@ -86,7 +86,7 @@ flowchart TB
 | Lint/format | **Biome** | быстрее связки ESLint + Prettier |
 | E2E (позже) | **Playwright** | сценарий до `CONFIRMED` |
 
-**Сознательно не используем на старте:** Next.js на каждый remote, GraphQL, общий Redux store между MFE.
+**Сознательно не используем на старте:** Next.js на каждый remote, общий Redux store между MFE. GraphQL — только как BFF read на gateway (`me.orders` / `order(id)` в mfe-orders); mutations остаются REST.
 
 ---
 

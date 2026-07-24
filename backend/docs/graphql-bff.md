@@ -79,6 +79,13 @@ query MyOrders {
 
 Список ходит в `GET /api/v1/orders` на order-service, затем обогащает уникальные `productId` через catalog (кэш на запрос).
 
+## Клиент
+
+`mfe-orders` читает через `api.graphql.meOrders()` / `api.graphql.order(id)` (`client/packages/api-client`).
+
+- create заказа + SSE статуса — по-прежнему REST;
+- на деталях позиции показывают live `catalog` (или «нет данных»).
+
 ## Локально
 
 1. Gateway + order-service + catalog-service запущены.

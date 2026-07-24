@@ -1,4 +1,10 @@
-import { ApiError, api, watchOrderStatus, type Order, type OrderStatus } from '@orderflow/api-client';
+import {
+	ApiError,
+	api,
+	watchOrderStatus,
+	type OrderDetails,
+	type OrderStatus,
+} from '@orderflow/api-client';
 import {
 	Alert,
 	AlertDescription,
@@ -16,6 +22,10 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 const TERMINAL: OrderStatus[] = ['CONFIRMED', 'CANCELLED', 'FAILED'];
+
+function asOrderStatus(status: string): OrderStatus {
+	return status as OrderStatus;
+}
 
 function StatusExplain({ status }: { status: OrderStatus }) {
 	if (status === 'CONFIRMED') {
@@ -60,12 +70,12 @@ export default function OrderDetailPage() {
 
 	const orderQuery = useQuery({
 		queryKey: ['orders', id],
-		queryFn: () => api.orders.get(id!),
+		queryFn: () => api.graphql.order(id!),
 		enabled: Boolean(id),
 		refetchInterval: (query) => {
 			if (!usePolling) return false;
 			const status = query.state.data?.status;
-			if (!status || TERMINAL.includes(status)) return false;
+			if (!status || TERMINAL.includes(asOrderStatus(status))) return false;
 			return 2000;
 		},
 	});
@@ -73,12 +83,12 @@ export default function OrderDetailPage() {
 	useEffect(() => {
 		if (!id) return;
 		const status = orderQuery.data?.status;
-		if (status && TERMINAL.includes(status)) return;
+		if (status && TERMINAL.includes(asOrderStatus(status))) return;
 
 		setLiveHint('sse');
 		const stop = watchOrderStatus(id, {
 			onEvent: (event) => {
-				queryClient.setQueryData<Order>(['orders', id], (prev) =>
+				queryClient.setQueryData<OrderDetails>(['orders', id], (prev) =>
 					prev
 						? { ...prev, status: event.status, updatedAt: event.updatedAt }
 						: prev,
@@ -124,7 +134,8 @@ export default function OrderDetailPage() {
 	}
 
 	const order = orderQuery.data;
-	const isPolling = !TERMINAL.includes(order.status);
+	const status = asOrderStatus(order.status);
+	const isPolling = !TERMINAL.includes(status);
 
 	return (
 		<div className="space-y-6">
@@ -136,8 +147,8 @@ export default function OrderDetailPage() {
 
 			<PageHeader
 				title="Детали заказа"
-				description="Статус обновляется по SSE; при сбое — polling каждые 2 с."
-				actions={<OrderStatusBadge status={order.status} />}
+				description="Read через GraphQL BFF (order + catalog). Статус — SSE; при сбое polling 2 с."
+				actions={<OrderStatusBadge status={status} />}
 			/>
 
 			{isPolling ? (
@@ -149,7 +160,7 @@ export default function OrderDetailPage() {
 					</AlertDescription>
 				</Alert>
 			) : (
-				<StatusExplain status={order.status} />
+				<StatusExplain status={status} />
 			)}
 
 			<div className="grid gap-4 sm:grid-cols-3">
@@ -195,6 +206,17 @@ export default function OrderDetailPage() {
 									<p className="text-sm text-of-muted-foreground">
 										{item.productId} · × {item.quantity}
 									</p>
+									{item.catalog ? (
+										<p className="mt-1 text-xs text-of-muted-foreground">
+											Каталог: {item.catalog.name}
+											{item.catalog.category ? ` · ${item.catalog.category}` : ''} · live{' '}
+											{item.catalog.price} {item.catalog.currency}
+										</p>
+									) : (
+										<p className="mt-1 text-xs text-of-muted-foreground">
+											Каталог: нет данных (SKU не найден или catalog down)
+										</p>
+									)}
 								</div>
 								<p className="text-sm font-semibold tabular-nums">
 									{item.unitPrice} {order.currency}
