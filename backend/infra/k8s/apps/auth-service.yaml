@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: orderflow
+  labels:
+    app.kubernetes.io/name: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: auth-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: orderflow/auth-service:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3001
+              name: http
+          envFrom:
+            - configMapRef:
+                name: orderflow-config
+          env:
+            - name: PORT
+              value: "3001"
+            - name: OTEL_SERVICE_NAME
+              value: auth-service
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: DATABASE_URL_AUTH
+            - name: JWT_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: JWT_ACCESS_SECRET
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: JWT_REFRESH_SECRET
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: orderflow
+  labels:
+    app.kubernetes.io/name: auth-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: auth-service
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http

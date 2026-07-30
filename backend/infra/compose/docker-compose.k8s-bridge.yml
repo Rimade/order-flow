@@ -1,0 +1,13 @@
+# Optional override when app pods in kind/k3d talk to Compose Kafka on the host.
+# Usage (from backend/infra/compose):
+#   docker compose -f docker-compose.yml -f docker-compose.k8s-bridge.yml up -d kafka
+#
+# K8s ConfigMap should use: KAFKA_BROKERS=host.docker.internal:9094
+services:
+  kafka:
+    ports:
+      - '${KAFKA_DOCKER_PORT:-9094}:9094'
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092,PLAINTEXT_DOCKER://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092,PLAINTEXT_DOCKER://host.docker.internal:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_DOCKER:PLAINTEXT

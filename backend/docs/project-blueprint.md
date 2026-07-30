@@ -52,7 +52,8 @@
 - `Redis` - кэш, ephemeral state, idempotency, locks;
 - `Kafka` - event bus и domain events между core-сервисами;
 - `RabbitMQ` - task queue для уведомлений (`notification-service`);
-- `Docker Compose` - локальная разработка;
+- `Docker Compose` - локальная разработка (default);
+- `Kubernetes (kind)` - опциональный учебный слой для app-сервисов; infra остаётся в Compose — [kubernetes.md](./kubernetes.md);
 - `OpenTelemetry` - трассировка и метрики;
 - `Jaeger` - distributed tracing;
 - `Prometheus` + `Grafana` - метрики и дашборды;
@@ -220,9 +221,10 @@
   docs/                    # git-workflow (общее для репозитория)
   backend/
     docs/                  # blueprint, local-dev, outbox, observability
-    scripts/               # dev-up.ps1 → infra/compose
-    services/              # api-gateway, auth, order, inventory, ...
+    scripts/               # dev-up.ps1, build-images.ps1, kind-load-images.ps1
+    services/              # api-gateway, auth, order, inventory, ... (+ Dockerfile each)
     infra/compose/         # Postgres, Redis, Kafka, RabbitMQ
+    infra/k8s/             # optional kind + Kustomize (apps only)
     packages/              # contracts, shared-observability, shared-testkit
   client/
     docs/                  # microfrontends, ui-kit
@@ -310,8 +312,9 @@ Backend: core saga, outbox (+ DLQ), Redis rate limit, tracing, metrics и ком
 7. **Catalog write UI** ✅ — create/edit в `mfe-catalog` (`ProductFormDialog`).
 8. **Analytics UI через gateway** ✅ — proxy + OpenAPI + `/ops/analytics`; см. [analytics.md](./analytics.md).
 9. **GraphQL в mfe-orders** ✅ — `me.orders` / `order(id)` + catalog enrichment в UI; create/SSE остаются REST.
+10. **Kubernetes (kind) учебный слой** ✅ — Dockerfile’ы + Kustomize; Compose остаётся default; [kubernetes.md](./kubernetes.md).
 
-Сознательно **не** берём: ELK/Loki, Alertmanager, service mesh, GraphQL внутри auth/order/payment.
+Сознательно **не** берём: ELK/Loki, Alertmanager, service mesh, GraphQL внутри auth/order/payment, Helm/operators в cloud.
 
 Frontend: фазы 1–2 + OpenAPI codegen уже закрыты (см. выше).
 
@@ -332,4 +335,5 @@ Backend (сделано):
 - ~~Catalog write UI~~ — create/edit dialogs в `mfe-catalog`;
 - ~~Analytics UI~~ — gateway proxy + `/ops/analytics`;
 - ~~GraphQL client reads~~ — `api.graphql` в mfe-orders;
+- ~~Kubernetes learning layer~~ — [kubernetes.md](./kubernetes.md) (kind + Kustomize; Compose default);
 - Observability runbook: [observability.md](./observability.md).

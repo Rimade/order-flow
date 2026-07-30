@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orderflow-config
+  namespace: orderflow
+data:
+  NODE_ENV: production
+  # Compose infra on the Docker Desktop / kind host
+  HOST_GATEWAY: host.docker.internal
+  # Postgres published on host :5433
+  POSTGRES_HOST: host.docker.internal
+  POSTGRES_PORT: "5433"
+  # Redis / Rabbit on host
+  REDIS_URL: redis://host.docker.internal:6379
+  RABBITMQ_URL: amqp://orderflow:orderflow@host.docker.internal:5672/
+  RABBITMQ_EXCHANGE: orderflow.notifications
+  RABBITMQ_QUEUE: notification-service.queue
+  RABBITMQ_BINDING_KEY: notification.#
+  # Kafka bridge listener (docker-compose.k8s-bridge.yml)
+  KAFKA_BROKERS: host.docker.internal:9094
+  # In-cluster service DNS
+  AUTH_SERVICE_URL: http://auth-service:3001
+  ORDER_SERVICE_URL: http://order-service:3002
+  CATALOG_SERVICE_URL: http://catalog-service:3006
+  ANALYTICS_SERVICE_URL: http://analytics-service:3007
+  THROTTLE_TTL_MS: "60000"
+  THROTTLE_LIMIT: "100"
+  THROTTLE_STORAGE: redis
+  HTTP_CLIENT_TIMEOUT_MS: "10000"
+  JWT_ACCESS_EXPIRES_IN: "15m"
+  JWT_REFRESH_EXPIRES_IN: "7d"
+  CACHE_STORE: redis
+  CACHE_TTL_MS: "60000"
+  IDEMPOTENCY_ENABLED: "true"
+  IDEMPOTENCY_TTL_SECONDS: "86400"
+  OUTBOX_POLL_INTERVAL_MS: "1000"
+  OUTBOX_BATCH_SIZE: "20"
+  OUTBOX_MAX_RETRIES: "5"
+  OUTBOX_DLQ_TOPIC: dlq.outbox
+  PAYMENT_SIMULATE_SUCCESS: "true"
+  OTEL_ENABLED: "false"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://host.docker.internal:4318/v1/traces
+  KAFKA_ORDER_TOPIC: order.created
+  KAFKA_ORDER_CREATED_TOPIC: order.created
+  KAFKA_INVENTORY_RESERVED_TOPIC: inventory.reserved
+  KAFKA_INVENTORY_REJECTED_TOPIC: inventory.rejected
+  KAFKA_PAYMENT_SUCCEEDED_TOPIC: payment.succeeded
+  KAFKA_PAYMENT_FAILED_TOPIC: payment.failed
+  KAFKA_PAYMENT_FAILED_CONSUMER_GROUP: inventory-service-compensation

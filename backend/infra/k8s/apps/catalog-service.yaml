@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  namespace: orderflow
+  labels:
+    app.kubernetes.io/name: catalog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: catalog-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: catalog-service
+    spec:
+      containers:
+        - name: catalog-service
+          image: orderflow/catalog-service:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3006
+              name: http
+          envFrom:
+            - configMapRef:
+                name: orderflow-config
+          env:
+            - name: PORT
+              value: "3006"
+            - name: OTEL_SERVICE_NAME
+              value: catalog-service
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: DATABASE_URL_CATALOG
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  namespace: orderflow
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: catalog-service
+  ports:
+    - name: http
+      port: 3006
+      targetPort: http

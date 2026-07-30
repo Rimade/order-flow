@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: orderflow
+resources:
+  - base
+  - apps/api-gateway.yaml
+  - apps/auth-service.yaml
+  - apps/order-service.yaml
+  - apps/catalog-service.yaml
+  - apps/inventory-service.yaml
+  - apps/payment-service.yaml
+  - apps/notification-service.yaml
+  - apps/analytics-service.yaml
+images:
+  - name: orderflow/api-gateway
+    newTag: local
+  - name: orderflow/auth-service
+    newTag: local
+  - name: orderflow/order-service
+    newTag: local
+  - name: orderflow/catalog-service
+    newTag: local
+  - name: orderflow/inventory-service
+    newTag: local
+  - name: orderflow/payment-service
+    newTag: local
+  - name: orderflow/notification-service
+    newTag: local
+  - name: orderflow/analytics-service
+    newTag: local

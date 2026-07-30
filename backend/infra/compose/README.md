@@ -67,3 +67,13 @@ docker compose down
 При первом запуске Postgres создает отдельные БД для сервисов, начиная с `orderflow_auth` для `auth-service`.
 
 Каждый сервис владеет своей БД. Общий Postgres-инстанс допустим только для локальной разработки.
+
+## Kubernetes bridge (опционально)
+
+Если app-сервисы крутятся в **kind** и ходят в этот Kafka, добавь listener `:9094`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.k8s-bridge.yml up -d
+```
+
+Подробнее: [docs/kubernetes.md](../../docs/kubernetes.md).

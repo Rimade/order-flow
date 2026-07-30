@@ -12,6 +12,7 @@ const logger = new Logger('OpenApiLoader');
  */
 export function loadGatewayOpenApi(): OpenAPIObject {
   const candidates = [
+    join(process.cwd(), 'openapi/orderflow-gateway-v1.yaml'),
     join(process.cwd(), '../../packages/contracts/openapi/orderflow-gateway-v1.yaml'),
     join(process.cwd(), '../packages/contracts/openapi/orderflow-gateway-v1.yaml'),
     join(__dirname, '../../../../packages/contracts/openapi/orderflow-gateway-v1.yaml'),

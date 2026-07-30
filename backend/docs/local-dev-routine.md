@@ -20,7 +20,8 @@
 | Слой | Что входит | Как запускается | Можно оставить на ночь? |
 |------|------------|-----------------|-------------------------|
 | **Инфра** | Postgres, Redis, Kafka, RabbitMQ, Kafka UI | Docker Compose | Да, часто так и делают |
-| **Приложения** | auth, gateway, order, catalog (Nest) + inventory, payment, notification, analytics (Go) | Отдельные терминалы | Лучше остановить (Ctrl+C) |
+| **Apps (daily)** | Nest + Go сервисы | host (`npm` / `go run`) | Лучше остановить (Ctrl+C) |
+| **Apps (K8s, optional)** | те же сервисы в kind | [kubernetes.md](./kubernetes.md) | Учебный слой; infra всё равно Compose |
 
 Клиент (браузер, Postman, будущий фронт) ходит **только** в gateway:
 
